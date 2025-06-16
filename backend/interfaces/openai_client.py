@@ -47,3 +47,33 @@ class OpenAIClient(LLMInterface):
                 return message.content or "[🤖] Sem resposta."
         except Exception as e:
             return f"[Erro Tool-Calling]: {str(e)}"
+        
+def chat(self, system: str, user: str):
+        """
+        Método usado pelo LLMPlanner para gerar plano de ação (tool-calling).
+        """
+        tools = get_registered_tools()
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user}
+                ],
+                tools=tools,
+                tool_choice="auto"
+            )
+            message = response.choices[0].message
+
+            if hasattr(message, "tool_calls") and message.tool_calls:
+                plan = []
+                for call in message.tool_calls:
+                    name = call.function.name
+                    args = json.loads(call.function.arguments)
+                    plan.append({"tool": name, "args": args})
+                return plan
+            else:
+                return []
+        except Exception as e:
+            return f"[Erro no planner com tool-calling]: {e}"        
