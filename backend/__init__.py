@@ -1,1 +1,1 @@
-# Inicialização do backend stk AI DevAgentic
+# Inicialização do backend AI DevAgentic

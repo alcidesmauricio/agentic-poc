@@ -4,8 +4,8 @@ const WebSocket = require('ws');
 let ws;
 
 function activate(context) {
-  const disposable = vscode.commands.registerCommand('stk.startAgent', function () {
-    vscode.window.showInformationMessage('🤖 stk AI DevAgentic iniciado!');
+  const disposable = vscode.commands.registerCommand('startAgent', function () {
+    vscode.window.showInformationMessage('🤖 AI DevAgentic iniciado!');
 
     ws = new WebSocket('ws://localhost:8000/ws');
 

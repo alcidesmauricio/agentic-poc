@@ -17,7 +17,7 @@ app.add_middleware(
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    await websocket.send_text("[stk AI DevAgentic conectado ✅]")
+    await websocket.send_text("[AI DevAgentic conectado ✅]")
 
     while True:
         data = await websocket.receive_text()

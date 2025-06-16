@@ -1,20 +1,20 @@
 {
-  "name": "stk-ai-devagentic",
-  "displayName": "stk AI DevAgentic",
+  "name": "ai-devagentic",
+  "displayName": "AI DevAgentic",
   "description": "Agente AI agentic integrado ao VSCode para auxiliar desenvolvedores.",
   "version": "2.2.0",
-  "publisher": "stk",
+  "publisher": "alcidesmauricio",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": ["Other"],
-  "activationEvents": ["onCommand:stk.startAgent"],
+  "activationEvents": ["onCommand:startAgent"],
   "main": "extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "stk.startAgent",
-        "title": "Iniciar stk AI DevAgentic"
+        "command": "startAgent",
+        "title": "Iniciar AI DevAgentic"
       }
     ]
   },
