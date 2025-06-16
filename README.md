@@ -30,7 +30,7 @@ O **STK AI DevAgentic** é um agente de software agentic, que atua como um copil
 
 ## 📡 Diagrama Mermaid (Arquitetura da Solução)
 
-\\\`mermaid
+```mermaid
 graph TD
     Client(👨‍💻 VSCode Client)
     ChatWebview[💬 Chat Webview]
@@ -64,13 +64,13 @@ graph TD
     DecisionLayer --> TerminalActions
     DecisionLayer --> FileActions
     DecisionLayer --> GitActions
-\\\`
+```
 
 ---
 
 ## 🧱 Estrutura de Pastas da v2.0
 
-\\\`
+```
 stk_ai_devagentic/
 ├── backend/
 │   ├── agentic_core/
@@ -87,7 +87,7 @@ stk_ai_devagentic/
 │   ├── terminal/
 │   └── webview/
 └── tests/
-\\\`
+```
 
 ---
 
