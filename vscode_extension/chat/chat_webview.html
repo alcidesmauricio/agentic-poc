@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat - AI DevAgentic</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1e1e1e;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #0a84ff;
+      color: #fff;
+    }
+
+    .agent {
+      align-self: flex-start;
+      background-color: #2d2d2d;
+      color: #ddd;
+    }
+
+    #inputArea {
+      display: flex;
+      border-top: 1px solid #333;
+      padding: 0.5rem;
+    }
+
+    #input {
+      flex: 1;
+      padding: 0.5rem;
+      background-color: #2a2a2a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #send {
+      margin-left: 0.5rem;
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #send:hover {
+      background-color: #006ce1;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <div id="inputArea">
+    <input id="input" type="text" placeholder="Digite sua mensagem..." />
+    <button id="send">Enviar</button>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const vscode = acquireVsCodeApi();
+      const chat = document.getElementById("chat");
+      const input = document.getElementById("input");
+      const send = document.getElementById("send");
+
+      function addMessage(from, text) {
+        const div = document.createElement("div");
+        div.className = `message ${from}`; 
+        div.textContent = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      send.onclick = () => {
+        const msg = input.value.trim();
+        if (!msg) return;
+        addMessage("user", msg);
+        vscode.postMessage({ text: msg });
+        input.value = "";
+      };
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send.click();
+        }
+      });
+
+      window.addEventListener("message", (event) => {
+        const message = event.data;
+        if (message.from === "agent") {
+          addMessage("agent", message.text);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

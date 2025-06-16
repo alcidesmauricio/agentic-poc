@@ -1,7 +1,7 @@
 {
   "name": "ai-devagentic",
   "displayName": "AI DevAgentic",
-  "description": "Agente AI agentic integrado ao VSCode para auxiliar desenvolvedores.",
+  "description": "Agente AI agentic integrado ao VSCode com chat interativo e suporte a tools backend.",
   "version": "2.2.0",
   "publisher": "alcidesmauricio",
   "engines": {
@@ -10,19 +10,28 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:startAgent"
-  ],
   "main": "extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "startAgent",
-        "title": "Iniciar AI DevAgentic"
-      }
-    ]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiDevAgenticSidebar",
+          "title": "AI DevAgentic",
+          "icon": "chat/chat_icon.png"
+        }
+      ]
+    },
+    "views": {
+      "aiDevAgenticSidebar": [
+        {
+          "id": "aiDevAgenticView",
+          "name": "Chat",
+          "type": "webview",
+          "icon": "chat/chat_icon.png"
+        }
+      ]
+    }
   },
-  "scripts": {},
   "dependencies": {
     "ws": "^8.18.2"
   }

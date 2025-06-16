@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from backend.agent.orchestrator import Orchestrator
-
+import backend.tools.builtin_tools
 app = FastAPI()
 orchestrator = Orchestrator()
 

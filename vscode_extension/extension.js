@@ -1,43 +1,71 @@
-const vscode = require('vscode');
-const WebSocket = require('ws');
+const vscode = require("vscode");
+const path = require("path");
+const fs = require("fs");
+const WebSocket = require("ws");
 
-let ws;
+class ChatProvider {
+  constructor(context) {
+    this.context = context;
+    this.ws = null;
+  }
 
-function activate(context) {
-  const disposable = vscode.commands.registerCommand('startAgent', function () {
-    vscode.window.showInformationMessage('🤖 AI DevAgentic iniciado!');
+  resolveWebviewView(webviewView) {
+    webviewView.webview.options = { enableScripts: true };
 
-    ws = new WebSocket('ws://localhost:8000/ws');
+    const htmlPath = path.join(this.context.extensionPath, "chat", "chat_webview.html");
+    const html = fs.readFileSync(htmlPath, "utf-8");
+    webviewView.webview.html = html;
 
-    ws.onopen = () => {
-      vscode.window.showInformationMessage('🧠 Conectado ao agente!');
+    this.ws = new WebSocket("ws://localhost:8000/ws");
+
+    this.ws.onopen = () => {
+      console.log("✅ WebSocket conectado ao backend!");
+      webviewView.webview.postMessage({
+        from: "agent",
+        text: "[🤖 AI DevAgentic conectado ✅]",
+      });
     };
 
-    ws.onmessage = (event) => {
-      vscode.window.showInformationMessage('📨 Resposta do agente: ' + event.data);
+    this.ws.onmessage = (event) => {
+      webviewView.webview.postMessage({
+        from: "agent",
+        text: event.data,
+      });
     };
 
-    ws.onerror = (error) => {
-      vscode.window.showErrorMessage('❌ Erro no agente: ' + error.message);
+    this.ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      webviewView.webview.postMessage({
+        from: "agent",
+        text: "❌ Erro ao conectar com o backend",
+      });
     };
 
-    vscode.window.showInputBox({ prompt: 'Digite um comando para o agente:' }).then((input) => {
-      if (input && ws.readyState === WebSocket.OPEN) {
-        ws.send(input);
+    // recebe do chat
+    webviewView.webview.onDidReceiveMessage((message) => {
+      const userText = message.text;
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(userText);
+      } else {
+        webviewView.webview.postMessage({
+          from: "agent",
+          text: "⚠️ WebSocket não está conectado.",
+        });
       }
     });
-  });
-
-  context.subscriptions.push(disposable);
-}
-
-function deactivate() {
-  if (ws) {
-    ws.close();
   }
 }
 
-module.exports = {
-  activate,
-  deactivate
-};
+function activate(context) {
+  vscode.window.showInformationMessage("✅ AI DevAgentic ativado!");
+  const provider = new ChatProvider(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("aiDevAgenticView", provider)
+  );
+}
+
+function deactivate() {
+  console.log("Desativando DevAgentic...");
+}
+
+module.exports = { activate, deactivate };
