@@ -18,7 +18,8 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 ---
 
 ## 📐 Arquitetura moderna (Mermaid)
-mermaid
+
+```mermaid
 graph TD
   Client[VSCode Extension] -->|WebSocket| WebServer[FastAPI WebSocket Server]
   WebServer --> Orchestrator[Agent Orchestrator]
@@ -33,10 +34,11 @@ graph TD
   GitWatcher --> Events
   FileWatcher --> Events
   TerminalWatcher --> Events
-
+```
 ---
 
 ## 📂 Estrutura da Solução
+```
 backend/
 ├── agent/                  # Planner, Orchestrator, FSM
 ├── actions/                # Implementação de ações
@@ -48,7 +50,7 @@ backend/
 ├── server/                 # WebSocket API
 ├── main.py                 # Ponto de entrada
 vscode_extension/           # Extensão integrada com o VSCode
-
+```
 ---
 
 ## ⚙️ Requisitos
@@ -63,9 +65,9 @@ Variável de ambiente OPENAI_API_KEY
 ## 🚀 Como rodar
 
 ### Backend
-bash
+```bash
 uvicorn backend.main:app --reload
-
+```
 ### Extensão VSCode
 
 1. Abra stk_ai_devagentic/vscode_extension no VSCode  
