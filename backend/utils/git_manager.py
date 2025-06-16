@@ -1,13 +1,29 @@
-import subprocess
+import os
+from git import Repo, GitCommandError
 
-def git_status() -> str:
+def get_repo():
     try:
-        return subprocess.check_output(["git", "status"]).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        return f"[Erro Git Status]: {e.output.decode('utf-8')}"
+        repo = Repo('.', search_parent_directories=True)
+        if repo.bare:
+            raise Exception("Repositório Git não encontrado.")
+        return repo
+    except Exception as e:
+        return None
 
-def git_diff() -> str:
+def get_status():
+    repo = get_repo()
+    if not repo:
+        return "Repositório Git não encontrado."
     try:
-        return subprocess.check_output(["git", "diff"]).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        return f"[Erro Git Diff]: {e.output.decode('utf-8')}"
+        return repo.git.status()
+    except GitCommandError as e:
+        return f"Erro ao obter status do Git: {str(e)}"
+
+def get_diff():
+    repo = get_repo()
+    if not repo:
+        return "Repositório Git não encontrado."
+    try:
+        return repo.git.diff()
+    except GitCommandError as e:
+        return f"Erro ao obter diff do Git: {str(e)}"
