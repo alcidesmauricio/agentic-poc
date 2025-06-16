@@ -6,10 +6,10 @@
 
 ## 🚀 Novidades na v2.1
 
-✅ Suporte completo a **LLM Tool-Calling**
-✅ Tools registradas: get_git_status, get_git_diff, run_terminal_command, list_project_files
-✅ Camada de decisão agora conversa com o LLM que escolhe qual tool executar
-✅ Arquitetura agentic mantida com FSM, event listeners e camada de ação
+✅ Suporte completo a **LLM Tool-Calling**<br>
+✅ Tools registradas: get_git_status, get_git_diff, run_terminal_command, list_project_files<br>
+✅ Camada de decisão agora conversa com o LLM que escolhe qual tool executar<br>
+✅ Arquitetura agentic mantida com FSM, event listeners e camada de ação<br>
 
 ---
 
@@ -17,22 +17,22 @@
 
 ```mermaid
 graph TD
-    Client(👨‍💻 VSCode Client)
-    ChatWebview[💬 Chat Webview]
-    TerminalListener[🖥️ Terminal Event Listener]
-    FileWatcher[📂 File Watcher]
-    GitWatcher[🔀 Git Watcher]
+    Client["VSCode Client 👨‍💻"]
+    ChatWebview["Chat Webview 💬"]
+    TerminalListener["Terminal Event Listener 🖥️"]
+    FileWatcher["File Watcher 📂"]
+    GitWatcher["Git Watcher 🔀"]
 
-    Backend(🧠 Python Backend - Agentic Core)
-    WebSocketServer[🔌 WebSocket Server]
-    FSM[🔁 FSM - Finite State Machine]
-    DecisionLayer[🧭 Decision Layer]
-    OpenAIClient[🤖 LLM Client (Tool Calling)]
-    ToolRegistry[🧰 Tool Registry]
-    GitActions[🔀 Git Actions]
-    TerminalActions[💻 Terminal Actions]
-    FileActions[📁 File Actions]
-    ContextManager[📋 Context Manager]
+    Backend["Python Backend - Agentic Core 🧠"]
+    WebSocketServer["WebSocket Server 🔌"]
+    FSM["FSM - Finite State Machine 🔁"]
+    DecisionLayer["Decision Layer 🧭"]
+    OpenAIClient["LLM Client (Tool Calling) 🤖"]
+    ToolRegistry["Tool Registry 🧰"]
+    GitActions["Git Actions 🔀"]
+    TerminalActions["Terminal Actions 💻"]
+    FileActions["File Actions 📁"]
+    ContextManager["Context Manager 📋"]
 
     Client --> ChatWebview
     ChatWebview -->|WebSocket| WebSocketServer
