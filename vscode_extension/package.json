@@ -1,0 +1,25 @@
+{
+  "name": "stk-ai-devagentic",
+  "displayName": "STK AI DevAgentic",
+  "description": "Agentic AI Developer Assistant for VSCode",
+  "version": "2.0.0",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "activationEvents": [
+    "onCommand:stk-ai-devagentic.start"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "stk-ai-devagentic.start",
+        "title": "Start STK AI DevAgentic"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode": "^1.1.37",
+    "ws": "^8.0.0"
+  }
+}
