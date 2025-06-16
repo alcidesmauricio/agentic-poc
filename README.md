@@ -1,4 +1,4 @@
-# 🤖 stk AI DevAgentic — v2.2
+# 🤖 AI DevAgentic — v2.2
 
 Agentic AI agent para desenvolvedores, com suporte inicial para VSCode e backend Core.  
 Comportamento proativo, linguagem natural, uso de ferramentas e percepção do ambiente.
@@ -19,7 +19,7 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 
 ## 🧭 Arquitetura Visual (v2.2)
 
-![Arquitetura stk AI DevAgentic v2.2](architecture_v2_2.png)
+![Arquitetura AI DevAgentic v2.2](architecture_v2_2.png)
 
 ---
 
@@ -75,9 +75,9 @@ uvicorn backend.main:app --reload
 ```
 ### Extensão VSCode
 
-1. Abra stk_ai_devagentic/vscode_extension no VSCode  
+1. Abra vscode_extension no VSCode  
 2. Pressione F5 para iniciar a extensão em modo dev  
-3. Execute o comando Iniciar stk AI DevAgentic  
+3. Execute o comando Iniciar AI DevAgentic  
 
 ---
 
@@ -103,4 +103,4 @@ Toda colaboração é bem-vinda 🙌
 
 ## 📘 Licença
 
-MIT — © 2025 stk AI DevAgentic.
+MIT — © 2025 AI DevAgentic.
