@@ -1,11 +1,4 @@
-from fastapi import FastAPI
-from backend.server.websocket_server import websocket_app
+from backend.server.websocket_server import app
 
-app = FastAPI()
-
-# Include WebSocket routes
-app.mount("/ws", websocket_app)
-
-@app.get("/")
-def root():
-    return {"message": "stk AI DevAgentic Backend Running"}
+# Este arquivo permite iniciar o backend localmente com:
+#   uvicorn backend.main:app --reload

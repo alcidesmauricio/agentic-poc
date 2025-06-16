@@ -1,9 +1,13 @@
 import subprocess
 
-def get_branch_name():
-    result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
-    return result.stdout.strip()
+def git_status() -> str:
+    try:
+        return subprocess.check_output(["git", "status"]).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        return f"[Erro Git Status]: {e.output.decode('utf-8')}"
 
-def get_uncommitted_changes():
-    result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-    return result.stdout
+def git_diff() -> str:
+    try:
+        return subprocess.check_output(["git", "diff"]).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        return f"[Erro Git Diff]: {e.output.decode('utf-8')}"

@@ -1,68 +1,44 @@
 const vscode = require('vscode');
 const WebSocket = require('ws');
-const path = require('path');
-const fs = require('fs');
 
 let ws;
 
 function activate(context) {
-    console.log('✅ STK AI DevAgentic ativado!');
+  const disposable = vscode.commands.registerCommand('stk.startAgent', function () {
+    vscode.window.showInformationMessage('🤖 stk AI DevAgentic iniciado!');
 
-    let disposable = vscode.commands.registerCommand('stk-ai-devagentic.start', function () {
-        connectWebSocket();
-        showChatWebview(context);
+    ws = new WebSocket('ws://localhost:8000/ws');
+
+    ws.onopen = () => {
+      vscode.window.showInformationMessage('🧠 Conectado ao agente!');
+    };
+
+    ws.onmessage = (event) => {
+      vscode.window.showInformationMessage('🗨️ Resposta do agente: ' + event.data);
+    };
+
+    ws.onerror = (error) => {
+      vscode.window.showErrorMessage('❌ Erro no agente: ' + error.message);
+    };
+
+    // Enviar comando exemplo
+    vscode.window.showInputBox({ prompt: 'Digite um comando para o agente' }).then((input) => {
+      if (input && ws.readyState === WebSocket.OPEN) {
+        ws.send(input);
+      }
     });
+  });
 
-    context.subscriptions.push(disposable);
-}
-
-function connectWebSocket() {
-    ws = new WebSocket('ws://localhost:8000/chat');
-
-    ws.on('open', function () {
-        console.log('🟢 WebSocket conectado ao backend!');
-    });
-
-    ws.on('message', function (message) {
-        vscode.window.showInformationMessage(Resposta da AI: ${message});
-    });
-
-    ws.on('close', function () {
-        console.log('🔴 WebSocket desconectado.');
-    });
-}
-
-function showChatWebview(context) {
-    const panel = vscode.window.createWebviewPanel(
-        'stkAiDevAgenticChat',
-        'STK AI DevAgentic Chat',
-        vscode.ViewColumn.One,
-        { enableScripts: true }
-    );
-
-    const htmlPath = path.join(context.extensionPath, 'webview', 'chat_webview.html');
-    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-
-    panel.webview.html = htmlContent;
-
-    panel.webview.onDidReceiveMessage(
-        message => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(message.text);
-            }
-        },
-        undefined,
-        context.subscriptions
-    );
+  context.subscriptions.push(disposable);
 }
 
 function deactivate() {
-    if (ws) {
-        ws.close();
-    }
+  if (ws) {
+    ws.close();
+  }
 }
 
 module.exports = {
-    activate,
-    deactivate
+  activate,
+  deactivate
 };

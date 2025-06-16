@@ -1,17 +1,29 @@
-from fastapi import APIRouter, WebSocket
-from backend.agentic_core.fsm.state_machine import state_machine
-from backend.agentic_core.llm_clients.openai_client import OpenAIClient
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+from backend.agent.orchestrator import Orchestrator
 
-websocket_app = APIRouter()
+app = FastAPI()
+orchestrator = Orchestrator()
 
-openai_client = OpenAIClient()
+# CORS para permitir acesso da extensão VSCode
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@websocket_app.websocket("/chat")
-async def websocket_chat(websocket: WebSocket):
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    await websocket.send_text("[stk AI DevAgentic conectado ✅]")
+
     while True:
         data = await websocket.receive_text()
-        # Passar pelo FSM antes de responder
-        action = state_machine.process_event(data)
-        response = openai_client.get_completion(action)
-        await websocket.send_text(response)
+        print(f"[Usuário 🧑‍💻] {data}")
+        result = orchestrator.run(data)
+        await websocket.send_text(result)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="localhost", port=8000)

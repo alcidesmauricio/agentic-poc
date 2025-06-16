@@ -1,54 +1,99 @@
-# 📦 STK AI DevAgentic - v2.1 (Tool-Calling + Agentic AI)
+# 🤖 stk AI DevAgentic — v2.2
 
-> Agente de desenvolvimento inteligente no VSCode com backend Python, FSM, decisões automáticas e agora com LLM tool-calling via OpenAI.
-
----
-
-## 🚀 Novidades na v2.1
-
-✅ Suporte completo a **LLM Tool-Calling**<br>
-✅ Tools registradas: get_git_status, get_git_diff, run_terminal_command, list_project_files<br>
-✅ Camada de decisão agora conversa com o LLM que escolhe qual tool executar<br>
-✅ Arquitetura agentic mantida com FSM, event listeners e camada de ação<br>
+Agente agentic de inteligência artificial para desenvolvedores, integrado ao VSCode.  
+Comportamento proativo, linguagem natural, uso de ferramentas e percepção do ambiente.
 
 ---
 
-## 📊 Arquitetura Atualizada (Mermaid)
+## ✨ Funcionalidades principais
 
-```mermaid
+🧠 Planejamento baseado em linguagem natural  
+🔁 FSM para estados de decisão e execução  
+🧩 Execução de ferramentas com LLM Tool-Calling (OpenAI)  
+🖥️ Integração WebSocket com extensão VSCode  
+🧠 Memória de contexto de interações  
+🔍 Observação reativa de terminal, arquivos e Git  
+⚙️ Ferramentas nativas como git status, diff, terminal e arquivos  
+
+---
+
+## 📐 Arquitetura moderna (Mermaid)
+mermaid
 graph TD
-    Client["VSCode Client 👨‍💻"]
-    ChatWebview["Chat Webview 💬"]
-    TerminalListener["Terminal Event Listener 🖥️"]
-    FileWatcher["File Watcher 📂"]
-    GitWatcher["Git Watcher 🔀"]
+  Client[VSCode Extension] -->|WebSocket| WebServer[FastAPI WebSocket Server]
+  WebServer --> Orchestrator[Agent Orchestrator]
+  Orchestrator --> Planner
+  Orchestrator --> LLMClient[OpenAI Client]
+  Orchestrator -->|Tool Calls| ToolRegistry
+  ToolRegistry --> Tools[Built-in Tools]
+  Tools --> GitTool
+  Tools --> TerminalTool
+  Tools --> FileTool
+  Orchestrator --> Memory[Context Manager]
+  GitWatcher --> Events
+  FileWatcher --> Events
+  TerminalWatcher --> Events
 
-    Backend["Python Backend - Agentic Core 🧠"]
-    WebSocketServer["WebSocket Server 🔌"]
-    FSM["FSM - Finite State Machine 🔁"]
-    DecisionLayer["Decision Layer 🧭"]
-    OpenAIClient["LLM Client (Tool Calling) 🤖"]
-    ToolRegistry["Tool Registry 🧰"]
-    GitActions["Git Actions 🔀"]
-    TerminalActions["Terminal Actions 💻"]
-    FileActions["File Actions 📁"]
-    ContextManager["Context Manager 📋"]
+---
 
-    Client --> ChatWebview
-    ChatWebview -->|WebSocket| WebSocketServer
+## 📂 Estrutura da Solução
+backend/
+├── agent/                  # Planner, Orchestrator, FSM
+├── actions/                # Implementação de ações
+├── events/                 # Observadores de eventos (Git, arquivos, terminal)
+├── interfaces/             # Interface LLM e OpenAI client
+├── memory/                 # Memória de contexto
+├── tools/                  # Registro e execução de ferramentas (Tool-Calling)
+├── utils/                  # Utilitários diversos
+├── server/                 # WebSocket API
+├── main.py                 # Ponto de entrada
+vscode_extension/           # Extensão integrada com o VSCode
 
-    TerminalListener -->|event| WebSocketServer
-    FileWatcher -->|event| WebSocketServer
-    GitWatcher -->|event| WebSocketServer
+---
 
-    WebSocketServer --> FSM
-    FSM --> DecisionLayer
-    DecisionLayer --> OpenAIClient
-    OpenAIClient -->|function_call| ToolRegistry
+## ⚙️ Requisitos
 
-    ToolRegistry --> GitActions
-    ToolRegistry --> TerminalActions
-    ToolRegistry --> FileActions
+Python 3.10+  
+Node.js (para extensão VSCode)  
+openai (Python SDK)  
+Variável de ambiente OPENAI_API_KEY  
 
-    DecisionLayer --> ContextManager
-```
+---
+
+## 🚀 Como rodar
+
+### Backend
+bash
+uvicorn backend.main:app --reload
+
+### Extensão VSCode
+
+1. Abra stk_ai_devagentic/vscode_extension no VSCode  
+2. Pressione F5 para iniciar a extensão em modo dev  
+3. Execute o comando Iniciar stk AI DevAgentic  
+
+---
+
+## 💬 Exemplos de comandos no chat
+
+| Entrada do usuário                         | Ação executada                            |
+|--------------------------------------------|-------------------------------------------|
+| qual o status do git?                    | Tool: get_git_status()                  |
+| mostre a diferença entre os arquivos     | Tool: get_git_diff()                    |
+| execute o comando ls                     | Tool: run_terminal_command("ls")        |
+| liste os arquivos do projeto             | Tool: list_project_files()              |
+| explique esse código: + código           | LLM puro (sem tools)                      |
+
+---
+
+## 🤝 Contribuindo
+
+Crie uma issue com sugestões ou bugs  
+Envie PRs com novos watchers, FSMs, planners ou tools!  
+Toda colaboração é bem-vinda 🙌  
+
+---
+
+## 📘 Licença
+
+MIT — © 2025 stk AI DevAgentic.
