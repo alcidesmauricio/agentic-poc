@@ -8,36 +8,41 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 ## ✨ Funcionalidades principais
 
 🧠 Planejamento baseado em linguagem natural  
-🔁 FSM para estados de decisão e execução  
-🧩 Execução de ferramentas com LLM Tool-Calling (OpenAI)  
-🖥️ Integração WebSocket com extensão VSCode  
-🧠 Memória de contexto de interações  
-🔍 Observação reativa de terminal, arquivos e Git  
-⚙️ Ferramentas nativas como git status, diff, terminal e arquivos  
+🔁 FSM e Decision Layer para estados de raciocínio e execução  
+🧩 Tool Registry com execução via LLM Tool-Calling  
+🖥️ Extensão WebSocket para VSCode com chat em tempo real  
+📁 Watchers de arquivos e Git integrados ao ciclo do agente  
+🔧 Ferramentas internas: Git Tool, File Tool, Terminal Tool  
+🧠 Memória de contexto local
 
 ---
 
-## 📐 Arquitetura moderna (Mermaid)
+## 🧭 Arquitetura Visual (v2.2)
 
-```mermaid
-graph TD
-  Client[VSCode Extension] -->|WebSocket| WebServer[FastAPI WebSocket Server]
-  WebServer --> Orchestrator[Agent Orchestrator]
-  Orchestrator --> Planner
-  Orchestrator --> LLMClient[OpenAI Client]
-  Orchestrator -->|Tool Calls| ToolRegistry
-  ToolRegistry --> Tools[Built-in Tools]
-  Tools --> GitTool
-  Tools --> TerminalTool
-  Tools --> FileTool
-  Orchestrator --> Memory[Context Manager]
-  GitWatcher --> Events
-  FileWatcher --> Events
-  TerminalWatcher --> Events
-```
+![Arquitetura stk AI DevAgentic v2.2](architecture_v2_2.png)
+
 ---
 
-## 📂 Estrutura da Solução
+## 🗂️ Legenda do Diagrama
+
+| Ícone / Bloco             | Descrição                                                                 |
+|---------------------------|---------------------------------------------------------------------------|
+| 🧑 MSD                    | Pessoa desenvolvedora interagindo com o VSCode e gerando eventos          |
+| 🧩 VSCode Extension       | Extensão instalada no VSCode, com WebSocket e chat webview                |
+| 📁 File Watcher           | Observador de arquivos (criação, edição, remoção)                         |
+| 📂 Git Watcher            | Observador de mudanças no repositório Git                                 |
+| 🔌 WebSocket              | Canal bidirecional entre extensão e backend Python                        |
+| 🧰 Tool Registry (extensão)| Responsável por registrar sugestões de comandos e ferramentas              |
+| 🐍 Python Backend         | Núcleo inteligente executando orquestração, decisão e ferramentas         |
+| 📈 Planner                | Planejador de ações com base no input do usuário                          |
+| ⚙️ Decision Layer         | Componente que decide se usará ferramentas ou LLM puro                    |
+| 📚 Tool Registry (backend)| Registro interno das ferramentas executáveis                              |
+| 🗃️ Git Tool               | Tool concreta que executa git status, git diff, etc                    |
+| 📂 File Tool              | Tool para listar, ler ou inspecionar arquivos                            |
+
+---
+
+## 📂 Estrutura do Projeto
 ```
 backend/
 ├── agent/                  # Planner, Orchestrator, FSM
