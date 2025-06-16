@@ -7,8 +7,12 @@
   "engines": {
     "vscode": "^1.80.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onCommand:startAgent"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:startAgent"
+  ],
   "main": "extension.js",
   "contributes": {
     "commands": [
@@ -19,5 +23,7 @@
     ]
   },
   "scripts": {},
-  "dependencies": {}
+  "dependencies": {
+    "ws": "^8.18.2"
+  }
 }

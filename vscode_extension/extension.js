@@ -14,15 +14,14 @@ function activate(context) {
     };
 
     ws.onmessage = (event) => {
-      vscode.window.showInformationMessage('🗨️ Resposta do agente: ' + event.data);
+      vscode.window.showInformationMessage('📨 Resposta do agente: ' + event.data);
     };
 
     ws.onerror = (error) => {
       vscode.window.showErrorMessage('❌ Erro no agente: ' + error.message);
     };
 
-    // Enviar comando exemplo
-    vscode.window.showInputBox({ prompt: 'Digite um comando para o agente' }).then((input) => {
+    vscode.window.showInputBox({ prompt: 'Digite um comando para o agente:' }).then((input) => {
       if (input && ws.readyState === WebSocket.OPEN) {
         ws.send(input);
       }
