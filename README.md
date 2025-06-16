@@ -1,6 +1,6 @@
 # 🤖 stk AI DevAgentic — v2.2
 
-Agente agentic de inteligência artificial para desenvolvedores, integrado ao VSCode.  
+Agentic AI agent para desenvolvedores, com suporte inicial para VSCode e backend Core.  
 Comportamento proativo, linguagem natural, uso de ferramentas e percepção do ambiente.
 
 ---
