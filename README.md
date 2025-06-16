@@ -15,7 +15,7 @@
 
 ## 📊 Arquitetura Atualizada (Mermaid)
 
-mermaid
+```mermaid
 graph TD
     Client(👨‍💻 VSCode Client)
     ChatWebview[💬 Chat Webview]
@@ -51,3 +51,4 @@ graph TD
     ToolRegistry --> FileActions
 
     DecisionLayer --> ContextManager
+```
