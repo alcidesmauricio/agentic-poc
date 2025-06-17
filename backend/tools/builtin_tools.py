@@ -1,10 +1,10 @@
 from backend.tools.registry import register_tool
-from backend.actions.git_actions.diff import get_git_diff
-from backend.actions.git_actions.status import get_git_status
-from backend.actions.git_actions.commit_changes import commit_changes
-from backend.actions.git_actions.create_branch import create_branch
-from backend.actions.git_actions.generate_commit_message import generate_commit_message
-from backend.actions.git_actions.push_changes import push_changes
+from backend.actions.git.diff import get_git_diff
+from backend.actions.git.status import get_git_status
+from backend.actions.git.commit_changes import commit_changes
+from backend.actions.git.create_branch import create_branch
+from backend.actions.git.generate_commit_message import generate_commit_message
+from backend.actions.git.push_changes import push_changes
 from backend.actions.terminal_actions import execute_terminal_command
 from backend.actions.file_actions import list_project_files
 from backend.actions.dev_tools import get_python_dependencies
@@ -61,11 +61,20 @@ def tool_create_branch(branch_name: str):
 
 @register_tool(
     name="generate_commit_message",
-    description="Gera uma mensagem de commit baseada nas alterações.",
-    parameters={}
+    description="Gera uma mensagem de commit com base no diff.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "diff": {
+                "type": "string",
+                "description": "Conteúdo do diff Git"
+            }
+        },
+        "required": ["diff"]
+    }
 )
-def tool_generate_commit_message():
-    return generate_commit_message()
+def tool_generate_commit_message(diff: str):
+    return generate_commit_message(diff)
 
 @register_tool(
     name="push_changes",
