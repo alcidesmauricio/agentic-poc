@@ -21,9 +21,9 @@ class RuleBasedPlanner(PlannerBase):
             plan.append({ "tool": "get_git_diff", "args": {} })
             plan.append({ "tool": "generate_commit_message", "args": { "diff": "__previous__" } })
         elif "commit tudo" in lower:
+            plan.append({ "tool": "get_git_add", "args": {} })            
             plan.append({ "tool": "get_git_diff", "args": {} })
             plan.append({ "tool": "generate_commit_message", "args": { "diff": "__previous__" } })
-            plan.append({ "tool": "get_git_add", "args": {} })
             plan.append({ "tool": "commit_changes", "args": { "message": "__previous__" } })
             plan.append({ "tool": "push_changes", "args": {} })
         elif "commit" in lower:
