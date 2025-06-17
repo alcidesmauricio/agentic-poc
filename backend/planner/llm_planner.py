@@ -12,28 +12,20 @@ class LLMPlanner(PlannerBase):
 
     def generate_plan(self, user_input: str, history: List[Dict] = []) -> List[Dict]:
         prompt = self.build_prompt(user_input, history)
-        response = self.llm.complete(prompt)
+        response = self.llm.complete(prompt).strip()
 
-        if not response or not response.strip():
-            print("⚠️ LLM retornou resposta vazia.")
+        if not response:
+            print("❌ LLM retornou resposta vazia.")
             return []
-
-        # Limpa prefixos como "json\n"
-        response_clean = response.strip()
-        if response_clean.lower().startswith("json"):
-            response_clean = response_clean[4:].strip()
 
         try:
-            plan = json.loads(response_clean)
+            plan = json.loads(response)
             if not isinstance(plan, list):
-                raise ValueError("❌ JSON não é uma lista de steps.")
+                raise ValueError("JSON não é uma lista de passos.")
             return plan
-        except json.JSONDecodeError as e:
-            print("❌ Erro ao fazer json.loads():", e)
-            print("🔁 Conteúdo bruto da LLM (limpo):", response_clean)
-            return []
         except Exception as e:
-            print("❌ Erro inesperado no parsing:", e)
+            print(f"❌ Erro ao fazer json.loads(): {e}")
+            print(f"🔁 Conteúdo bruto da LLM:\n{response}")
             return []
 
     def build_prompt(self, user_input: str, history: List[Dict]) -> str:
@@ -42,35 +34,53 @@ class LLMPlanner(PlannerBase):
 
         history_str = "\n".join(
             [f"[🔧{step.get('tool')}]: {step.get('result', '...')}" for step in history]
-        )        
+        ) or "Nenhum histórico disponível."
 
         prompt = f"""
         Você é um planejador de ações para um agente de desenvolvimento.
 
-        Baseado no objetivo do usuário e nos resultados anteriores, decida quais ferramentas devem ser executadas em seguida.
+        Seu papel é analisar o pedido do usuário e, com base nas ferramentas disponíveis e no histórico recente de execuções, decidir **quais ferramentas devem ser chamadas e com quais argumentos**.
 
-        Objetivo do usuário:
+        ---
+
+        🎯 Objetivo do usuário:
         {user_input}
 
-        Histórico de execuções anteriores:
+        📚 Histórico de execuções anteriores:
         {history_str}
 
-        Ferramentas disponíveis:
+        🔧 Ferramentas disponíveis:
         {tool_names}
 
-        Retorne APENAS um JSON VÁLIDO com a lista de passos a seguir, no seguinte formato:
+        ---
+
+        📝 Sua tarefa:
+
+        1. Liste as próximas ações a serem executadas, utilizando até **3 ferramentas**, no seguinte formato:
 
         [
-        {{ "tool": "nome_da_tool", "args": {{ ... }} }},
-        ...
+          {{ "tool": "nome_da_tool", "args": {{ ... }} }},
+          ...
         ]
 
+        2. Se **nenhuma ação for necessária**, retorne um JSON vazio: [].
+
+        3. Se o pedido for muito genérico ou amplo (ex: "em que você pode me ajudar?"), utilize ferramentas como get_git_status, list_files, etc., para **coletar contexto antes de decidir**.
+
+        4. Evite executar ações irrelevantes. Seja pragmático.
+
         ⚠️ IMPORTANTE:
-        O retorno deve ser um JSON válido e parsável com json.loads().
-        NÃO adicione nenhum comentário, explicação ou texto fora do JSON.
-        Utilize aspas duplas em nomes e valores de chave (ex: "tool", "args").
-        Evite deixar vírgulas sobrando no final de listas ou objetos.
-        Não escreva a palavra “json” antes. Retorne apenas o JSON.
+
+        - **Retorne apenas um JSON válido**, diretamente parsável com json.loads().
+        - Não inclua comentários, explicações, markdown, prefixos como "json", nem texto fora do JSON.
+        - Use **aspas duplas** em nomes e valores de chave (ex: "tool", "args").
+        - Não deixe vírgulas no final de listas ou objetos.
+
+        Exemplo válido:
+        [
+          {{ "tool": "get_git_status", "args": {{}} }},
+          {{ "tool": "commit_files", "args": {{ "message": "Ajustes finais" }} }}
+        ]
         """
         return prompt.strip()
 

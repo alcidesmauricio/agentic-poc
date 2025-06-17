@@ -10,7 +10,50 @@ class Orchestrator:
         self.replanning_enabled = True
         self.llm = OpenAIClient()
 
+
     def run(self, user_input: str):
+        print(f"🧠 Modo do planner: {self.mode}")
+        planner = LLMPlanner() if self.mode == "llm" else RuleBasedPlanner()
+
+        history = []
+
+        plan = planner.generate_plan(user_input, history)
+
+        if not plan:
+            yield "json\n⚠️ Nenhuma ação necessária no momento.\n"
+            return
+
+        yield "json\n🧠 Plano gerado com base no seu pedido:\n"
+        for idx, step in enumerate(plan, 1):
+            yield f"{idx}. 🔧 {step['tool']} — (tool: {step['tool']})\n"
+
+        previous_result = None
+
+        for idx, step in enumerate(plan, 1):
+            tool_name = step["tool"]
+            args = step.get("args", {})
+
+            for k, v in args.items():
+                if isinstance(v, str) and v == "__previous__":
+                    args[k] = previous_result
+
+            yield f"bash\n⚙️ Executando etapa {idx}: {tool_name}...\n(tool: {tool_name})\n"
+            result = call_tool_by_name(tool_name, args)
+
+            if isinstance(result, dict) and result.get("skip_commit"):
+                yield f"bash\n⏭️ Etapa pulada: {tool_name} – {result['message']}\n"
+                continue
+
+            if self.replanning_enabled and isinstance(result, dict) and result.get("replan"):
+                yield f"bash\n🔁 Replanejando com base no resultado anterior...\n"
+                plan = planner.generate_plan(result["message"])
+                previous_result = None
+                continue
+
+            previous_result = result.get("message", result) if isinstance(result, dict) else result
+            yield f"json\n✅ Resultado da etapa {idx} ({tool_name}):\n{previous_result}\n"
+            
+    def run_old(self, user_input: str):
         print(f"🧠 Modo do planner: {self.mode}")
         planner = LLMPlanner() if self.mode == "llm" else RuleBasedPlanner()
 
