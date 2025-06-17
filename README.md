@@ -19,10 +19,10 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 
 ## 📌 Novidades na versão 2.2
 
-✅ Planejador LLM com geração dinâmica de planos a partir do histórico e do contexto
-🔄 Alternância em tempo real entre planners (regra ↔️ LLM) via interface no chat
-🛠️ Nova Tool: create_and_run_python_file — cria e executa scripts .py sob demanda
-⚠️ Ainda **não possui testes automatizados** — foco atual em prototipagem funcional
+✅ Planejador LLM com geração dinâmica de planos a partir do histórico e do contexto  
+🔄 Alternância em tempo real entre planners (regra ↔️ LLM) via interface no chat  
+🛠️ Nova Tool: create_and_run_python_file — cria e executa scripts .py sob demanda  
+⚠️ Ainda **não possui testes automatizados** — foco atual em prototipagem funcional  
 
 ---
 
@@ -54,7 +54,7 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 
 ## 📂 Estrutura do Projeto
 
-\\\`
+```
 backend/
 ├── agent/                  # Planner, Orchestrator, FSM
 ├── actions/                # Implementação de ações
@@ -66,7 +66,7 @@ backend/
 ├── server/                 # WebSocket API
 ├── main.py                 # Ponto de entrada do backend
 vscode_extension/           # Extensão integrada com o VSCode (Webview + Chat)
-\\\`
+```
 
 ---
 
@@ -82,9 +82,9 @@ Variável de ambiente \OPENAI_API_KEY\
 ## 🚀 Como rodar
 
 ### Backend
-\\\`bash
+```bash
 uvicorn backend.main:app --reload
-\\\`
+```
 
 ### Extensão VSCode
 
