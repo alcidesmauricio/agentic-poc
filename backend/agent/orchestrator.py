@@ -1,25 +1,36 @@
-from backend.planner import get_planner
+import json
+from backend.planner.rule_based import RuleBasedPlanner
 from backend.tools.registry import call_tool_by_name
-from backend.interfaces.openai_client import OpenAIClient
 
 class Orchestrator:
     def __init__(self):
-        self.planner = get_planner()
-        self.llm_fallback = OpenAIClient()
-   
-    def run(self, user_input: str) -> str:
+        self.planner = RuleBasedPlanner()
+
+    def run(self, user_input):
+        yield "[🤖] Gerando plano..."
         plan = self.planner.generate_plan(user_input)
-        result = None
+        if not plan:
+            yield "[⚠️] Nenhuma ação identificada para esse input."
+            return
+
+        yield f"[📋] Plano criado:\n{json.dumps(plan, indent=2)}"
+
+        last_result = None
 
         for step in plan:
-            tool_name = step["tool"]
-            args = step.get("args", {})
+            tool = step["tool"]
+            args = step["args"]
 
-            # Substitui "__previous__" pelo resultado da etapa anterior
-            for key, value in args.items():
-                if value == "__previous__":
-                    args[key] = result
+            # Substituição de __previous__ por resultado anterior
+            for k, v in args.items():
+                if isinstance(v, str) and "__previous__" in v:
+                    args[k] = last_result or ""
 
-            result = call_tool_by_name(tool_name, args)
+        #   for key, value in args.items():
+        #         if value == "__previous__":
+        #             args[key] = result
 
-        return result    
+            yield f"[⚙️] Executando: {tool}..."
+            result = call_tool_by_name(tool, args)
+            yield f"[✅] Resultado de {tool}:\n{result}"
+            last_result = result
