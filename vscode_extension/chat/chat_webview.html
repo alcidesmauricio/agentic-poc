@@ -46,6 +46,10 @@
       align-items: center;
       background: #1e1e1e;
     }
+    #plannerToggle {
+      margin-right: 0.5rem;
+      transform: scale(1.2);
+    }
     #input {
       flex: 1;
       padding: 0.5rem;
@@ -72,10 +76,6 @@
       width: 0;
       transition: width 0.3s;
       display: none;
-      /* Garante que não cause scroll */
-      margin: 0;
-      padding: 0;
-      border: none;
     }
   </style>
 </head>
@@ -83,73 +83,95 @@
   <div id="chat"></div>
   <div id="loadingBar"></div>
   <div id="inputArea">
+    <label for="plannerToggle" style="color:#ccc; margin-right: 0.5rem;">
+      <input type="checkbox" id="plannerToggle" /> LLM Planner?
+    </label>
     <input id="input" type="text" placeholder="Digite sua mensagem..." />
     <button id="send">Enviar</button>
   </div>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const vscode = acquireVsCodeApi();
-      const chat = document.getElementById("chat");
-      const input = document.getElementById("input");
-      const send = document.getElementById("send");
-      const loadingBar = document.getElementById("loadingBar");
 
-      let lastAgentDiv = null;
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const vscode = acquireVsCodeApi();
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+    const plannerToggle = document.getElementById("plannerToggle");
+    const loadingBar = document.getElementById("loadingBar");
 
-      function showLoading() {
-        loadingBar.style.display = "block";
-        loadingBar.style.width = "100%";
-      }
-      function hideLoading() {
-        loadingBar.style.width = "0";
-        setTimeout(() => loadingBar.style.display = "none", 300);
-      }
+    let lastAgentDiv = null;
 
-      function addMessage(from, text) {
-        const div = document.createElement("div");
-        div.className = `message ${from}`;
-        div.textContent = text;
-        chat.appendChild(div);
-        chat.scrollTop = chat.scrollHeight;
-        return div;
-      }
+    function showLoading() {
+      loadingBar.style.display = "block";
+      loadingBar.style.width = "100%";
+    }
 
-      send.onclick = () => {
-        const msg = input.value.trim();
-        if (!msg) return;
-        addMessage("user", msg);
-        vscode.postMessage({ text: msg });
-        input.value = "";
-        lastAgentDiv = null;
-        showLoading();
-      };
+    function hideLoading() {
+      loadingBar.style.width = "0";
+      setTimeout(() => loadingBar.style.display = "none", 300);
+    }
 
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+    function addMessage(from, text) {
+      const div = document.createElement("div");
+      div.className = "message " + from;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function sendMessage() {
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const plannerMode = plannerToggle.checked ? "llm" : "rule";
+
+      addMessage("user", msg);
+
+      vscode.postMessage({
+        type: "message",
+        text: msg,
+        planner: plannerMode
+      });
+
+      input.value = "";
+      lastAgentDiv = null;
+      showLoading();
+    }
+
+    send.onclick = sendMessage;
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        if (e.shiftKey) {
+          // Quebra de linha
           e.preventDefault();
-          send.click();
+          input.value += "\n";
+        } else {
+          e.preventDefault();
+          sendMessage();
         }
-      });
-
-      window.addEventListener("message", (event) => {
-        const message = event.data;
-        if (message.from === "agent") {
-          // Suporte a mensagens parciais
-          if (message.partial) {
-            if (!lastAgentDiv) {
-              lastAgentDiv = addMessage("agent", message.text);
-            } else {
-              lastAgentDiv.textContent = message.text;
-              chat.scrollTop = chat.scrollHeight;
-            }
-          } else {
-            addMessage("agent", message.text);
-            lastAgentDiv = null;
-            hideLoading();
-          }
-        }
-      });
+      }
     });
-  </script>
+
+    window.addEventListener("message", (event) => {
+      const message = event.data;
+      if (message.from === "agent") {
+        if (message.partial) {
+          if (!lastAgentDiv) {
+            lastAgentDiv = addMessage("agent", message.text);
+          } else {
+            lastAgentDiv.textContent = message.text;
+            chat.scrollTop = chat.scrollHeight;
+          }
+        } else {
+          addMessage("agent", message.text);
+          lastAgentDiv = null;
+          hideLoading();
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>

@@ -45,7 +45,7 @@ class ChatProvider {
     webviewView.webview.onDidReceiveMessage((message) => {
       const userText = message.text;
       if (this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(userText);
+        this.ws.send(JSON.stringify(message));
       } else {
         webviewView.webview.postMessage({
           from: "agent",
