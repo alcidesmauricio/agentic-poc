@@ -21,7 +21,7 @@ class Orchestrator:
             tool_name = step["tool"]
             args = step.get("args", {})
 
-            # Substituir __previous__ pelo resultado anterior
+            # Substitui "__previous__" pelo resultado anterior
             for k, v in args.items():
                 if isinstance(v, str) and v == "__previous__":
                     args[k] = previous_result
@@ -29,16 +29,23 @@ class Orchestrator:
             yield f"[⚙️ Executando: {tool_name}...]"
             result = call_tool_by_name(tool_name, args)
 
-            # Replanejar se ferramenta sinalizar
-            if isinstance(result, dict):
-                if result.get("skip_commit"):
-                    yield f"[⏩ Pulando etapa: {tool_name}] → {result['message']}"
-                    if self.replanning_enabled:
-                        yield "[🔁 Replanejando com base no resultado anterior...]"
-                        plan = planner.generate_plan(result["message"])
-                        yield f"[📋 Novo plano]:\n{json.dumps(plan, indent=2)}"
-                        previous_result = None
-                        continue  # Recomeça com o novo plano
+            # ⏭️ Pular etapa e replanejar se indicado pela ferramenta
+            if isinstance(result, dict) and result.get("skip_commit"):
+                yield f"[⏭️] Pulando etapa: {tool_name} – {result['message']}"
+                
+                if self.replanning_enabled:
+                    yield "[🔁] Replanejando com base no resultado anterior..."
+                    plan = planner.generate_plan(result["message"])
 
+                    # 🚫 Evita novo plano vazio ou irrelevante
+                    if not plan or "commit" in result["message"].lower():
+                        yield "[✅] Commit abortado por ausência de alterações. Nenhuma ação será executada."
+                        return
+
+                    yield f"[🆕] Novo plano:\n{json.dumps(plan, indent=2)}"
+                    previous_result = None
+                    continue
+
+            # Armazena resultado para próxima etapa
             previous_result = result.get("message", result) if isinstance(result, dict) else result
             yield f"[✅ Resultado de {tool_name}]:\n{previous_result}"
