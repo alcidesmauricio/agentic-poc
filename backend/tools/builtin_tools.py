@@ -1,4 +1,5 @@
 from backend.tools.registry import register_tool
+from backend.actions.git.add import git_add
 from backend.actions.git.diff import get_git_diff
 from backend.actions.git.status import get_git_status
 from backend.actions.git.commit_changes import commit_changes
@@ -10,12 +11,12 @@ from backend.actions.file_actions import list_project_files
 from backend.actions.dev_tools import get_python_dependencies
 
 @register_tool(
-    name="get_git_add",
+    name="git_add",
     description="Executa o add no repositório Git.",
     parameters={}
 )
-def tool_get_git_status():
-    return get_git_status()
+def tool_git_add():
+    return git_add()
 
 
 @register_tool(

@@ -8,7 +8,7 @@ class RuleBasedPlanner(PlannerBase):
 
 
         if "add" in lower:
-            plan.append({ "tool": "get_git_add", "args": {} })
+            plan.append({ "tool": "git_add", "args": {} })
         elif "status" in lower:
             plan.append({ "tool": "get_git_status", "args": {} })
         elif "diff" in lower or "alterações" in lower:
@@ -21,7 +21,7 @@ class RuleBasedPlanner(PlannerBase):
             plan.append({ "tool": "get_git_diff", "args": {} })
             plan.append({ "tool": "generate_commit_message", "args": { "diff": "__previous__" } })
         elif "commit tudo" in lower:
-            plan.append({ "tool": "get_git_add", "args": {} })            
+            plan.append({ "tool": "git_add", "args": {} })            
             plan.append({ "tool": "get_git_diff", "args": {} })
             plan.append({ "tool": "generate_commit_message", "args": { "diff": "__previous__" } })
             plan.append({ "tool": "commit_changes", "args": { "message": "__previous__" } })

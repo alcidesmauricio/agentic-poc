@@ -6,19 +6,20 @@ class Orchestrator:
     def __init__(self):
         self.planner = get_planner()
         self.llm_fallback = OpenAIClient()
-
+   
     def run(self, user_input: str) -> str:
         plan = self.planner.generate_plan(user_input)
+        result = None
 
-        # ✅ Fallback se nenhuma ação for identificada
-        if not plan:
-            return self.llm_fallback.complete(user_input)
-
-        results = []
         for step in plan:
-            tool = step.get("tool", "")
+            tool_name = step["tool"]
             args = step.get("args", {})
-            result = call_tool_by_name(tool, args)
-            results.append(f"[🔧 {tool}] {result}")
 
-        return "\n\n".join(results)
+            # Substitui "__previous__" pelo resultado da etapa anterior
+            for key, value in args.items():
+                if value == "__previous__":
+                    args[key] = result
+
+            result = call_tool_by_name(tool_name, args)
+
+        return result    
