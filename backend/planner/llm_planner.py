@@ -3,6 +3,7 @@ from backend.interfaces.llm_interface import LLMInterface
 from backend.tools.registry import get_registered_tools
 from .base import PlannerBase
 from backend.interfaces.openai_client import OpenAIClient
+import json
 
 class LLMPlanner(PlannerBase):
     def __init__(self):

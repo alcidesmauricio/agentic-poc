@@ -10,6 +10,15 @@ from backend.actions.file_actions import list_project_files
 from backend.actions.dev_tools import get_python_dependencies
 
 @register_tool(
+    name="get_git_add",
+    description="Executa o add no repositório Git.",
+    parameters={}
+)
+def tool_get_git_status():
+    return get_git_status()
+
+
+@register_tool(
     name="get_git_status",
     description="Mostra o status atual do repositório Git.",
     parameters={}
