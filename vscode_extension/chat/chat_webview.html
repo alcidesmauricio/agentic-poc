@@ -14,7 +14,6 @@
       flex-direction: column;
       height: 100vh;
     }
-
     #chat {
       flex: 1;
       padding: 1rem;
@@ -22,7 +21,6 @@
       display: flex;
       flex-direction: column;
     }
-
     .message {
       max-width: 75%;
       padding: 0.6rem 1rem;
@@ -31,25 +29,23 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-
     .user {
       align-self: flex-end;
       background-color: #0a84ff;
       color: #fff;
     }
-
     .agent {
       align-self: flex-start;
       background-color: #2d2d2d;
       color: #ddd;
     }
-
     #inputArea {
       display: flex;
       border-top: 1px solid #333;
       padding: 0.5rem;
+      align-items: center;
+      background: #1e1e1e;
     }
-
     #input {
       flex: 1;
       padding: 0.5rem;
@@ -58,7 +54,6 @@
       border: none;
       border-radius: 4px;
     }
-
     #send {
       margin-left: 0.5rem;
       background-color: #0a84ff;
@@ -68,32 +63,55 @@
       border-radius: 4px;
       cursor: pointer;
     }
-
     #send:hover {
       background-color: #006ce1;
+    }
+    #loadingBar {
+      height: 3px;
+      background: #0a84ff;
+      width: 0;
+      transition: width 0.3s;
+      display: none;
+      /* Garante que não cause scroll */
+      margin: 0;
+      padding: 0;
+      border: none;
     }
   </style>
 </head>
 <body>
   <div id="chat"></div>
+  <div id="loadingBar"></div>
   <div id="inputArea">
     <input id="input" type="text" placeholder="Digite sua mensagem..." />
     <button id="send">Enviar</button>
   </div>
-
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       const vscode = acquireVsCodeApi();
       const chat = document.getElementById("chat");
       const input = document.getElementById("input");
       const send = document.getElementById("send");
+      const loadingBar = document.getElementById("loadingBar");
+
+      let lastAgentDiv = null;
+
+      function showLoading() {
+        loadingBar.style.display = "block";
+        loadingBar.style.width = "100%";
+      }
+      function hideLoading() {
+        loadingBar.style.width = "0";
+        setTimeout(() => loadingBar.style.display = "none", 300);
+      }
 
       function addMessage(from, text) {
         const div = document.createElement("div");
-        div.className = `message ${from}`; 
+        div.className = `message ${from}`;
         div.textContent = text;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
+        return div;
       }
 
       send.onclick = () => {
@@ -102,6 +120,8 @@
         addMessage("user", msg);
         vscode.postMessage({ text: msg });
         input.value = "";
+        lastAgentDiv = null;
+        showLoading();
       };
 
       input.addEventListener("keydown", (e) => {
@@ -114,7 +134,19 @@
       window.addEventListener("message", (event) => {
         const message = event.data;
         if (message.from === "agent") {
-          addMessage("agent", message.text);
+          // Suporte a mensagens parciais
+          if (message.partial) {
+            if (!lastAgentDiv) {
+              lastAgentDiv = addMessage("agent", message.text);
+            } else {
+              lastAgentDiv.textContent = message.text;
+              chat.scrollTop = chat.scrollHeight;
+            }
+          } else {
+            addMessage("agent", message.text);
+            lastAgentDiv = null;
+            hideLoading();
+          }
         }
       });
     });

@@ -2,8 +2,11 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from backend.agent.orchestrator import Orchestrator
-import backend.tools.builtin_tools
+from backend.tools.registry import register_built_in_tools
+from backend.tools.registry import register_built_in_tools
+register_built_in_tools()
 app = FastAPI()
+register_built_in_tools()
 orchestrator = Orchestrator()
 
 # CORS para permitir acesso da extensão VSCode

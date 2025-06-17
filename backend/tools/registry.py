@@ -16,6 +16,9 @@ def register_tool(name=None, description=None, parameters=None):
         return func
     return decorator
 
+def register_built_in_tools():
+    import backend.tools.builtin_tools
+
 def get_registered_tools():
     return [tool["spec"] for tool in _tool_registry.values()]
 
