@@ -39,18 +39,6 @@
       background-color: #2d2d2d;
       color: #ddd;
     }
-    pre {
-      background-color: #1b1b1b;
-      padding: 0.75rem;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-size: 0.9rem;
-      font-family: monospace;
-      margin: 0.5rem 0;
-    }
-    code {
-      color: #eee;
-    }
     #inputArea {
       display: flex;
       border-top: 1px solid #333;
@@ -84,6 +72,7 @@
       width: 0;
       transition: width 0.3s;
       display: none;
+      /* Garante que não cause scroll */
       margin: 0;
       padding: 0;
       border: none;
@@ -111,7 +100,6 @@
         loadingBar.style.display = "block";
         loadingBar.style.width = "100%";
       }
-
       function hideLoading() {
         loadingBar.style.width = "0";
         setTimeout(() => loadingBar.style.display = "none", 300);
@@ -120,18 +108,7 @@
       function addMessage(from, text) {
         const div = document.createElement("div");
         div.className = `message ${from}`;
-
-        if (text.startsWith("") && text.endsWith("")) {
-          const code = text.slice(3, -3).trim();
-          const pre = document.createElement("pre");
-          const codeBlock = document.createElement("code");
-          codeBlock.textContent = code;
-          pre.appendChild(codeBlock);
-          div.appendChild(pre);
-        } else {
-          div.textContent = text;
-        }
-
+        div.textContent = text;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
         return div;
@@ -157,21 +134,12 @@
       window.addEventListener("message", (event) => {
         const message = event.data;
         if (message.from === "agent") {
+          // Suporte a mensagens parciais
           if (message.partial) {
             if (!lastAgentDiv) {
               lastAgentDiv = addMessage("agent", message.text);
             } else {
-              if (message.text.startsWith("") && message.text.endsWith("")) {
-                const code = message.text.slice(3, -3).trim();
-                const codeBlock = document.createElement("code");
-                codeBlock.textContent = code;
-                lastAgentDiv.innerHTML = "";
-                const pre = document.createElement("pre");
-                pre.appendChild(codeBlock);
-                lastAgentDiv.appendChild(pre);
-              } else {
-                lastAgentDiv.textContent = message.text;
-              }
+              lastAgentDiv.textContent = message.text;
               chat.scrollTop = chat.scrollHeight;
             }
           } else {
