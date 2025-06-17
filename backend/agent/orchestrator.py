@@ -2,6 +2,7 @@ import json
 from backend.tools.registry import get_registered_tools, call_tool_by_name
 from backend.interfaces.llm_interface import LLMInterface
 from backend.interfaces.openai_client import OpenAIClient
+
 class Orchestrator:
     def __init__(self):
         self.llm = OpenAIClient()
@@ -11,49 +12,36 @@ class Orchestrator:
         from backend.planner.rule_based import RuleBasedPlanner
         planner = RuleBasedPlanner()
         plan = planner.generate_plan(user_input)
+
         yield f"[📋 Plano gerado]:\n{json.dumps(plan, indent=2)}"
 
         previous_result = None
+
         for i, step in enumerate(plan):
             tool_name = step["tool"]
             args = step.get("args", {})
+
+            # Substitui __previous__ pelo resultado anterior
             for k, v in args.items():
-                if v == "__previous__":
-                    args[k] = previous_result or ""
+                if isinstance(v, str) and v == "__previous__":
+                    args[k] = previous_result
 
             yield f"[⚙️ Executando: {tool_name}...]"
             result = call_tool_by_name(tool_name, args)
-            yield f"[✅ Resultado de {tool_name}]:\n{result}"
-            previous_result = result
 
-            if self.replanning_enabled:
-                new_plan = self.llm_replan(user_input, result, tool_name, plan[i+1:])
-                if new_plan:
-                    yield "[🔁 Replanner ativado: novo plano gerado]"
-                    plan = plan[:i+1] + new_plan
+            if isinstance(result, dict):
+                if result.get("skip_commit"):
+                    yield f"[⏩ Pulando etapa: {tool_name} - {result['message']}]"
 
-    def llm_replan(self, user_input, last_result, last_tool, remaining_plan):
-        prompt = f"""
-Você é um agente inteligente com autonomia para ajustar o plano de execução.
+                    if self.replanning_enabled:
+                        yield "[🔁 Replanejando com base no resultado anterior...]"
+                        plan = planner.generate_plan(result["message"])
+                        yield f"[📋 Novo plano]:\n{json.dumps(plan, indent=2)}"
+                        previous_result = None
+                        continue  # recomeça o for com novo plano
 
-Usuário pediu: "{user_input}"
-
-Última ferramenta executada: "{last_tool}"
-Resultado: "{last_result}"
-
-Plano restante: {json.dumps(remaining_plan)}
-
-Você deve:
-❌ Cancelar etapas inúteis se o resultado indicar que elas não são mais necessárias
-✅ Reescrever o plano a partir daqui apenas se necessário
-✅ Se não for necessário replanejar, responda apenas: "CONTINUE"
-
-Novo plano (formato JSON): 
-"""
-        new_plan_raw = self.llm.complete(prompt)
-        if "CONTINUE" in new_plan_raw.upper():
-            return None
-        try:
-            return json.loads(new_plan_raw)
-        except Exception:
-            return None
+                previous_result = result.get("message", result)
+                yield f"[✅ Resultado de {tool_name}]:\n{previous_result}"
+            else:
+                previous_result = result
+                yield f"[✅ Resultado de {tool_name}]:\n{result}"

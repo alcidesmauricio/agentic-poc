@@ -1,17 +1,22 @@
 from backend.interfaces.openai_client import OpenAIClient
 
-def generate_commit_message(diff: str) -> str:
+def generate_commit_message(diff: str) -> dict:
     if not diff.strip():
-        return "[🧼] Nenhuma alteração staged encontrada."
+        return {
+            "message": "[🛑] Nenhuma alteração detectada. Abortando commit.",
+            "skip_commit": True
+        }
 
     prompt = f"""
-    Você é um assistente de desenvolvimento.
-    Com base no seguinte diff de código, gere uma mensagem de commit curta, clara e descritiva:
+Você é um assistente de desenvolvimento.
+Com base no seguinte diff de código, gere uma mensagem de commit curta, clara e descritiva:
 
-    {diff}
-    """
+{diff}
+"""
+
     try:
         llm = OpenAIClient()
-        return llm.complete(prompt)
+        message = llm.complete(prompt)
+        return { "message": message, "skip_commit": False }
     except Exception as e:
-        return f"[Erro]: {str(e)}"
+        return { "message": f"[Erro]: {str(e)}", "skip_commit": True }
