@@ -1,5 +1,6 @@
 import os
 import socket
+import subprocess
 from backend.tools.registry import register_tool
 
 @register_tool(
@@ -91,3 +92,34 @@ def get_file_summary(filepath: str) -> str:
         return "\n".join(lines)
     except Exception as e:
         return f"[Erro]: {e}"
+
+@register_tool(
+    name="create_and_run_python_file",
+    description="Cria um arquivo .py e executa o conteúdo.",
+    parameters={
+        "file_name": {"type": "string", "description": "Nome do arquivo a ser criado."},
+        "content": {"type": "string", "description": "Código Python a ser escrito e executado."}
+    }
+)
+def create_and_run_python_file(file_name: str, content: str) -> dict:
+    try:
+        with open(file_name, "w") as f:
+            f.write(content)
+
+        result = subprocess.run(
+            ["python3", file_name],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        return {
+            "message": result.stdout or result.stderr,
+            "success": result.returncode == 0
+        }
+
+    except Exception as e:
+        return {
+            "message": f"Erro ao criar ou executar: {str(e)}",
+            "success": False
+        }
