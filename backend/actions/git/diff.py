@@ -1,8 +1,17 @@
 import subprocess
 
-def get_git_diff():
+def get_git_diff() -> dict:
     try:
-        result = subprocess.check_output(['git', 'diff'], stderr=subprocess.STDOUT)
-        return result.decode('utf-8') or "[Sem alterações]"
-    except subprocess.CalledProcessError as e:
-        return f"[Erro Git Diff]: {e.output.decode('utf-8')}"
+        result = subprocess.run(['git', 'diff', '--cached'], capture_output=True, text=True)
+        diff = result.stdout.strip()
+        if not diff:
+            return {
+                "message": "[🟡] Nenhuma alteração staged encontrada.",
+                "skip_commit": True
+            }
+        return {
+            "diff": diff,
+            "skip_commit": False
+        }
+    except Exception as e:
+        return { "message": f"[Erro Git Diff]: {e}", "skip_commit": True }

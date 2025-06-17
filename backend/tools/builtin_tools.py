@@ -29,7 +29,7 @@ def tool_get_git_status():
 
 @register_tool(
     name="get_git_diff",
-    description="Exibe as alterações não commitadas no repositório Git.",
+    description="Verifica alterações staged no repositório Git. Retorna o conteúdo do diff e indica se o commit deve ser pulado.",
     parameters={}
 )
 def tool_get_git_diff():
