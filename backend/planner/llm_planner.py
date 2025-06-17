@@ -10,7 +10,7 @@ class LLMPlanner(PlannerBase):
 
     def generate_plan(self, user_input: str) -> List[Dict]:
         system_prompt = """
-Você é um planejador de ações para um agente AI no VSCode. Dado um input de um desenvolvedor, você deve escolher qual ferramenta (tool) usar.
+Você é um planejador de ações para um agente AI. Dado um input de um desenvolvedor, você deve escolher qual ferramenta (tool) usar.
 
 Responda apenas com JSON conforme o exemplo:
 [
