@@ -1,14 +1,19 @@
+from enum import Enum, auto
+
+class AgentState(Enum):
+    IDLE = auto()
+    PLANNING = auto()
+    EXECUTING = auto()
+    WAITING = auto()
+    ERROR = auto()
+
 class StateMachine:
     def __init__(self):
-        self.state = "idle"
+        self.state = AgentState.IDLE
 
-    def transition(self, event: str):
-        if self.state == "idle" and event == "user_input":
-            self.state = "thinking"
-        elif self.state == "thinking" and event == "plan_ready":
-            self.state = "executing"
-        elif self.state == "executing" and event == "done":
-            self.state = "idle"
+    def transition_to(self, new_state: AgentState):
+        print(f"[FSM] Transição: {self.state.name} → {new_state.name}")
+        self.state = new_state
 
-    def current_state(self):
+    def get_state(self):
         return self.state

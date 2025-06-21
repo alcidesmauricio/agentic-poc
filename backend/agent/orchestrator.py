@@ -3,67 +3,24 @@ from backend.tools.registry import call_tool_by_name
 from backend.interfaces.openai_client import OpenAIClient
 from backend.planner.llm_planner import LLMPlanner
 from backend.planner.rule_based import RuleBasedPlanner
+from backend.agent.fsm.state_machine import StateMachine, AgentState
 
 class Orchestrator:
     def __init__(self, mode="rule"):
         self.mode = mode
         self.replanning_enabled = True
         self.llm = OpenAIClient()
-
+        self.fsm = StateMachine()
 
     def run(self, user_input: str):
-        print(f"🧠 Modo do planner: {self.mode}")
+        print(f"[🔍] Modo atual do planner: {self.mode}")
         planner = LLMPlanner() if self.mode == "llm" else RuleBasedPlanner()
 
         history = []
-
+        self.fsm.transition_to(AgentState.PLANNING)
         plan = planner.generate_plan(user_input, history)
 
-        if not plan:
-            yield "json\n⚠️ Nenhuma ação necessária no momento.\n"
-            return
-
-        yield "json\n🧠 Plano gerado com base no seu pedido:\n"
-        for idx, step in enumerate(plan, 1):
-            yield f"{idx}. 🔧 {step['tool']} — (tool: {step['tool']})\n"
-
-        previous_result = None
-
-        for idx, step in enumerate(plan, 1):
-            tool_name = step["tool"]
-            args = step.get("args", {})
-
-            for k, v in args.items():
-                if isinstance(v, str) and v == "__previous__":
-                    args[k] = previous_result
-
-            yield f"bash\n⚙️ Executando etapa {idx}: {tool_name}...\n(tool: {tool_name})\n"
-            result = call_tool_by_name(tool_name, args)
-
-            if isinstance(result, dict) and result.get("skip_commit"):
-                yield f"bash\n⏭️ Etapa pulada: {tool_name} – {result['message']}\n"
-                continue
-
-            if self.replanning_enabled and isinstance(result, dict) and result.get("replan"):
-                yield f"bash\n🔁 Replanejando com base no resultado anterior...\n"
-                plan = planner.generate_plan(result["message"])
-                previous_result = None
-                continue
-
-            previous_result = result.get("message", result) if isinstance(result, dict) else result
-            yield f"json\n✅ Resultado da etapa {idx} ({tool_name}):\n{previous_result}\n"
-            
-    def run_old(self, user_input: str):
-        print(f"🧠 Modo do planner: {self.mode}")
-        planner = LLMPlanner() if self.mode == "llm" else RuleBasedPlanner()
-
-
-        # Histórico pode ser carregado de uma memória futura; por ora, vazio:
-        history = []
-
-        plan = planner.generate_plan(user_input, history)
-
-        yield f"json\n📋 Plano gerado:\n{json.dumps(plan, indent=2)}\n"
+        yield f"json\n🧠 Plano gerado:\n{json.dumps(plan, indent=2)}\n"
 
         previous_result = None
         for step in plan:
@@ -74,17 +31,23 @@ class Orchestrator:
                 if isinstance(v, str) and v == "__previous__":
                     args[k] = previous_result
 
-            yield f"bash\n⚙️ Executando: {tool_name}...\n"
+            self.fsm.transition_to(AgentState.EXECUTING)
+
+            yield f"bash\n⚙️ Executando ({tool_name})..."
             result = call_tool_by_name(tool_name, args)
 
             if isinstance(result, dict) and result.get("skip_commit"):
                 yield f"bash\n⏭️ Pulando etapa: {tool_name} – {result['message']}\n"
 
                 if self.replanning_enabled:
+                    self.fsm.transition_to(AgentState.PLANNING)
+
                     yield f"bash\n🔁 Replanejando com base no resultado anterior...\n"
                     plan = planner.generate_plan(result["message"])
 
                     if not plan or "commit" in result["message"].lower():
+                        self.fsm.transition_to(AgentState.IDLE)
+
                         yield f"bash\n✅ Commit abortado por ausência de alterações. Nenhuma ação será executada.\n"
                         return
 
@@ -93,4 +56,6 @@ class Orchestrator:
                     continue
 
             previous_result = result.get("message", result) if isinstance(result, dict) else result
-            yield f"json\n✅ Resultado de {tool_name}:\n{previous_result}\n"
+            yield f"json\n✅ Resultado de {tool_name}:{previous_result}\n"
+
+        self.fsm.transition_to(AgentState.IDLE)
