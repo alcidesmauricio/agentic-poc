@@ -8,7 +8,7 @@ class EmailWatcherAsync:
 
     async def start(self):
         self.running = True
-        print("[📬 EmailWatcherAsync] Iniciado")
+        print("[EmailWatcherAsync] Iniciado")
         while self.running:
             await self.check_function()
             await asyncio.sleep(self.interval)

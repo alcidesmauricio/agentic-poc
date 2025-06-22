@@ -1,38 +1,38 @@
-# 🤖 AI DevAgentic — v2.2
+# AI DevAgentic — v2.2
 
 Agentic AI agent para desenvolvedores, com suporte inicial para VSCode e backend Core.  
 Comportamento proativo, linguagem natural, uso de ferramentas e percepção do ambiente.
 
 ---
 
-## ✨ Funcionalidades principais
+## Funcionalidades principais
 
-🧠 Planejamento dinâmico com LLM (via tool-calling) ou heurística baseada em regras  
-🔁 FSM e Decision Layer para estados de raciocínio e execução  
-🧩 Tool Registry com execução segura e extensível (LLM Tool-Calling)  
-🖥️ Extensão WebSocket para VSCode com chat em tempo real  
-📁 Watchers de arquivos e Git integrados ao ciclo do agente  
-🔧 Ferramentas internas: Git Tool, File Tool, Terminal Tool, Python Runner Tool  
-🧠 Memória de contexto local (em desenvolvimento)
-
----
-
-## 📌 Novidades na versão 2.2
-
-✅ Planejador LLM com geração dinâmica de planos a partir do histórico e do contexto  
-🔄 Alternância em tempo real entre planners (regra ↔️ LLM) via interface no chat  
-🛠️ Nova Tool: create_and_run_python_file — cria e executa scripts .py sob demanda  
-⚠️ Ainda **não possui testes automatizados** — foco atual em prototipagem funcional  
+- Planejamento dinâmico com LLM (via tool-calling) ou heurística baseada em regras  
+- FSM e Decision Layer para estados de raciocínio e execução  
+- Tool Registry com execução segura e extensível (LLM Tool-Calling)  
+- Extensão WebSocket para VSCode com chat em tempo real  
+- Watchers de arquivos e Git integrados ao ciclo do agente  
+- Ferramentas internas: Git Tool, File Tool, Terminal Tool, Python Runner Tool  
+- Memória de contexto local (em desenvolvimento)
 
 ---
 
-## 🧭 Arquitetura Visual (v2.2)
+## Novidades na versão 2.2
+
+- Planejador LLM com geração dinâmica de planos a partir do histórico e do contexto  
+- Alternância em tempo real entre planners (regra ↔️ LLM) via interface no chat  
+- Nova Tool: create_and_run_python_file — cria e executa scripts .py sob demanda  
+- Ainda **não possui testes automatizados** — foco atual em prototipagem funcional  
+
+---
+
+## Arquitetura (v2.2)
 
 ![Arquitetura AI DevAgentic v2.2](architecture_v2_2.png)
 
 ---
 
-## 🗂️ Legenda do Diagrama
+## Legenda do Diagrama
 
 | Ícone / Bloco             | Descrição                                                                 |
 |---------------------------|---------------------------------------------------------------------------|
@@ -52,7 +52,7 @@ Comportamento proativo, linguagem natural, uso de ferramentas e percepção do a
 
 ---
 
-## 📂 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 backend/
@@ -70,7 +70,7 @@ vscode_extension/           # Extensão integrada com o VSCode (Webview + Chat)
 
 ---
 
-## ⚙️ Requisitos
+## Requisitos
 
 Python 3.10+  
 Node.js (para extensão VSCode)  
@@ -79,7 +79,7 @@ Variável de ambiente \OPENAI_API_KEY\
 
 ---
 
-## 🚀 Como rodar
+## Como rodar
 
 ### Backend
 ```bash
@@ -94,7 +94,7 @@ uvicorn backend.main:app --reload
 
 ---
 
-## 💬 Exemplos de comandos no chat
+## Exemplos de comandos no chat
 
 | Entrada do usuário                         | Ação executada                                 |
 |--------------------------------------------|------------------------------------------------|
@@ -107,14 +107,14 @@ uvicorn backend.main:app --reload
 
 ---
 
-## 🤝 Contribuindo
+## Contribuindo
 
 Crie uma issue com sugestões ou bugs  
 Envie PRs com novos watchers, FSMs, planners ou tools  
-Toda colaboração é bem-vinda 🙌  
+Toda colaboração é bem-vinda  
 
 ---
 
-## 📘 Licença
+## Licença
 
 MIT — © 2025 AI DevAgentic

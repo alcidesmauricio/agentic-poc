@@ -10,7 +10,7 @@ class EmailWatcherScheduled:
 
     def run(self):
         self.running = True
-        print("[📬 EmailWatcherScheduled] Iniciado")
+        print("[EmailWatcherScheduled] Iniciado")
         while self.running:
             self.check_function()
             time.sleep(self.interval)

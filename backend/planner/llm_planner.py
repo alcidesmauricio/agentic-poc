@@ -43,18 +43,18 @@ class LLMPlanner(PlannerBase):
 
         ---
 
-        🎯 Objetivo do usuário:
+        Objetivo do usuário:
         {user_input}
 
-        📚 Histórico de execuções anteriores:
+        Histórico de execuções anteriores:
         {history_str}
 
-        🔧 Ferramentas disponíveis:
+        Ferramentas disponíveis:
         {tool_names}
 
         ---
 
-        📝 Sua tarefa:
+        Sua tarefa:
 
         1. Liste as próximas ações a serem executadas, utilizando até **3 ferramentas**, no seguinte formato:
 
@@ -69,8 +69,7 @@ class LLMPlanner(PlannerBase):
 
         4. Evite executar ações irrelevantes. Seja pragmático.
 
-        ⚠️ IMPORTANTE:
-
+        IMPORTANTE:
         - **Retorne apenas um JSON válido**, diretamente parsável com json.loads().
         - Não inclua comentários, explicações, markdown, prefixos como "json", nem texto fora do JSON.
         - Use **aspas duplas** em nomes e valores de chave (ex: "tool", "args").
