@@ -15,3 +15,13 @@ class EmailWatcherAsync:
 
     def stop(self):
         self.running = False
+
+# 👇 Adicione isso ao final do arquivo
+async def run_email_fsm():
+    from backend.events.email_agent_flow import run_email_flow  # sua função que processa e-mails
+
+    watcher = EmailWatcherAsync(check_function=lambda: run_email_flow(), interval=30)
+    await watcher.start()
+
+if __name__ == "__main__":
+    asyncio.run(run_email_fsm())
