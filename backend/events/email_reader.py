@@ -1,12 +1,23 @@
-import imaplib
-import email
-import os
+import imaplib, email, os
+from datetime import datetime
 from email.header import decode_header
 
-def fetch_latest_email():
-    imap_host = "outlook.office365.com"
+def decode_mime_words(header_value):
+    decoded_parts = decode_header(header_value)
+    result = ''
+    for part, enc in decoded_parts:
+        if isinstance(part, bytes):
+            result += part.decode(enc or 'utf-8', errors='replace')
+        else:
+            result += part
+    return result
+
+def read_imap_emails():
     email_user = os.getenv("EMAIL_ADDRESS")
     email_pass = os.getenv("EMAIL_PASSWORD")
+
+    domain = email_user.split("@")[-1]
+    imap_host = "imap.gmail.com" if "gmail" in domain else "outlook.office365.com"
 
     if not email_user or not email_pass:
         raise ValueError("EMAIL_ADDRESS e EMAIL_PASSWORD devem estar definidos no .env")
@@ -15,17 +26,19 @@ def fetch_latest_email():
     mail.login(email_user, email_pass)
     mail.select("inbox")
 
-    status, messages = mail.search(None, "UNSEEN")
-    email_ids = messages[0].split()
+    today = datetime.today().strftime("%d-%b-%Y")
+    status, data = mail.search(None, f'(UNSEEN SINCE {today})')
+    email_ids = data[0].split()
 
     result = []
-    for email_id in email_ids[:5]:
-        status, msg_data = mail.fetch(email_id, "(RFC822)")
-        msg = email.message_from_bytes(msg_data[0][1])
-        subject = decode_header(msg["Subject"])[0][0]
-        if isinstance(subject, bytes):
-            subject = subject.decode()
-        from_ = msg.get("From")
+
+    for eid in email_ids[:5]:
+        _, msg_data = mail.fetch(eid, "(RFC822)")
+        raw_email = email.message_from_bytes(msg_data[0][1])
+
+        subject = decode_mime_words(raw_email["Subject"])
+        from_ = raw_email["From"]
+
         result.append({"from": from_, "subject": subject})
 
     mail.logout()

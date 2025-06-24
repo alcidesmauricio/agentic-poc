@@ -9,7 +9,7 @@ load_dotenv()
 async def run_email_flow():
     email_data = fetch_latest_email()
     if not email_data:
-        print("📭 Sem e-mails novos.")
+        print("Sem e-mails novos.")
         return
 
     orchestrator = Orchestrator(mode="llm")

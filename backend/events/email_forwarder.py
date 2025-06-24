@@ -1,18 +1,16 @@
-import smtplib
-from email.message import EmailMessage
-import os
-from dotenv import load_dotenv
+import smtplib, os
+from email.mime.text import MIMEText
 
-load_dotenv()
+async def forward_email(original_from, subject, to_email):
+    body = f"E-mail original de: {original_from}\nAssunto: {subject}"
 
-def forward_email(email_data, destination):
-    msg = EmailMessage()
-    msg["Subject"] = f"FWD: {email_data['subject']}"
-    msg["From"] = os.getenv("EMAIL_USER")
-    msg["To"] = destination
-    msg.set_content(email_data["body"])
+    msg = MIMEText(body)
+    msg["Subject"] = f"[FWD] {subject}"
+    msg["From"] = os.getenv("EMAIL_ADDRESS")
+    msg["To"] = to_email
 
-    with smtplib.SMTP_SSL("smtp.office365.com", 465) as smtp:
-        smtp.login(os.getenv("EMAIL_USER"), os.getenv("EMAIL_PASSWORD"))
-        smtp.send_message(msg)
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(os.getenv("EMAIL_ADDRESS"), os.getenv("EMAIL_PASSWORD"))
+        server.send_message(msg)
 
+    print(f"E-mail encaminhado para {to_email}")

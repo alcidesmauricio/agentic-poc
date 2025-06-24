@@ -10,17 +10,17 @@ def run_email_fsm():
     emails = read_outlook_emails()
 
     if not emails:
-        print("📭 Nenhum email novo.")
+        print("Nenhum email novo.")
         return
 
     fsm.transition(EmailFSMState.DECIDING)
-    print(f"🔍 Analisando {len(emails)} emails...")
+    print(f"Analisando {len(emails)} emails...")
 
     fsm.transition(EmailFSMState.FORWARDING)
     result = decide_and_forward(emails)
 
     fsm.transition(EmailFSMState.DONE)
-    print(f"✅ {len(result)} emails processados.")
+    print(f"{len(result)} emails processados.")
 
 if __name__ == "__main__":
     run_email_fsm()
