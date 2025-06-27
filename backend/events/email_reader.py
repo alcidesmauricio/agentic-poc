@@ -43,3 +43,7 @@ def read_imap_emails():
 
     mail.logout()
     return result
+
+
+
+#guedes teste
