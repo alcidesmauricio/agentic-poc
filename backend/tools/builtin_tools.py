@@ -9,6 +9,8 @@ from backend.actions.git.push_changes import push_changes
 from backend.actions.terminal_actions import execute_terminal_command
 from backend.actions.file_actions import list_project_files
 from backend.actions.dev_tools import get_python_dependencies
+from backend.tools.agent_router import agent_router_tool
+from typing import List
 
 @register_tool(
     name="git_add",
@@ -126,3 +128,31 @@ def tool_list_project_files():
 )
 def tool_get_python_dependencies():
     return get_python_dependencies()
+
+@register_tool(
+    name="agent_router",
+    description="Roteia a solicitação do usuário para o agente apropriado com base no contexto ou delega a um agente master.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "input_text": {
+                "type": "string",
+                "description": "Texto da solicitação do usuário."
+            },
+            "master_agent": {
+                "type": "string",
+                "description": "Nome do agente master que tomará a decisão sobre qual filho chamar."
+            },
+            "child_agents": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Lista de agentes filhos disponíveis."
+            }
+        },
+        "required": ["input_text"]
+    }
+)
+def tool_agent_router(input_text: str, master_agent: str = None, child_agents: List[str] = None):
+    return agent_router_tool(input_text, master_agent, child_agents)

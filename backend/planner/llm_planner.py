@@ -3,7 +3,6 @@ from typing import List, Dict
 from backend.planner.base import PlannerBase
 from backend.interfaces.openai_client import OpenAIClient
 from backend.tools.registry import get_registered_tools
-from backend.tools.registry import get_registered_tools
 
 
 class LLMPlanner(PlannerBase):
@@ -63,11 +62,13 @@ class LLMPlanner(PlannerBase):
           ...
         ]
 
-        2. Se **nenhuma ação for necessária**, retorne um JSON vazio: [].
+        2. Se nenhuma ação for claramente necessária, **use a ferramenta agent_router como fallback**, enviando o input do usuário como argumento para ajudar a descobrir o contexto.
 
-        3. Se o pedido for muito genérico ou amplo (ex: "em que você pode me ajudar?"), utilize ferramentas como get_git_status, list_files, etc., para **coletar contexto antes de decidir**.
+        3. Se o pedido for muito genérico, amplo ou mal formulado (ex: "em que você pode me ajudar?" ou "quero ver coisas da API"), inicie um processo de descoberta:
+           - Use ferramentas como agent_router, get_git_status, list_project_files, get_python_dependencies, etc., para coletar contexto sobre o projeto e a intenção do usuário.
+           - Sempre que estiver em dúvida, prefira **descobrir e adaptar**, não ignorar o input.
 
-        4. Evite executar ações irrelevantes. Seja pragmático.
+        4. Nunca retorne um JSON vazio a menos que tenha absoluta certeza de que nenhuma ação pode ser tomada.
 
         IMPORTANTE:
         - **Retorne apenas um JSON válido**, diretamente parsável com json.loads().
