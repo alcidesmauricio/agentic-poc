@@ -151,7 +151,7 @@ def tool_get_python_dependencies():
                 "description": "Lista de agentes filhos disponíveis."
             }
         },
-        "required": ["input_text"]
+        "required": ["input_text", "master_agent", "child_agents"]
     }
 )
 def tool_agent_router(input_text: str, master_agent: str = None, child_agents: List[str] = None):

@@ -65,11 +65,24 @@ class Orchestrator:
         context += f"Agentes disponíveis:\n{tools_description}\n"
         system_prompt = master_prompt + context
         user_prompt = (
+            "Exemplos:\n"
+            "Usuário: Quero falar sobre assuntos financeiros, com quem eu falo?\n"
+            "Resposta: {\"agent\": \"finance_agent\"}\n"
+            "Usuário: Preciso de ajuda jurídica\n"
+            "Resposta: {\"agent\": \"legal_agent\"}\n"
+            "Usuário: Não sei com quem falar\n"
+            "Resposta: {\"agent\": \"none\"}\n"
+            "Usuário: Com qu falo sobre finanças?\n"
+            "Resposta: {\"agent\": \"finance_agent\"}\n"
+            "---\n"
+            f"Usuário: {user_input}\n"
             "Com base na solicitação do usuário e nos agentes disponíveis, "
             "responda apenas com o nome do agente mais adequado em JSON, sem explicações, "
             "por exemplo: {\"agent\": \"finance_agent\"}. "
             "Se não souber, responda {\"agent\": \"none\"}."
         )
+        print(f"[DEBUG] system_prompt:\n{system_prompt}\n")
+        print(f"[DEBUG] user_prompt:\n{user_prompt}\n")
         response = await self.llm.chat_async(system=system_prompt, user=user_prompt)
         print(f"[DEBUG] Resposta bruta do LLM: {response}")  # Log para depuração
         yield f"#bash Agente master escolheu: {response}\n"
@@ -102,7 +115,7 @@ class Orchestrator:
             return
 
         agent_prompt = selected["system_prompt"]
-        child_llm = OpenAIClient()
+        child_llm = OpenAIClient()   
         child_response = await child_llm.chat_async(system=agent_prompt, user=user_input)
         yield f"#json📨 Resposta do agente {selected['name']}:\n{child_response}\n"
         self.fsm.transition_to(AgentState.IDLE)

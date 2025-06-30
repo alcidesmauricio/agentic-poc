@@ -7,7 +7,6 @@ async def agent_router_tool(input_text: str, master_agent: str = None, child_age
     """
     Roteia a entrada para o agente adequado com base no contexto.
     """
-    from backend.agent.orchestrator import Orchestrator
     orchestrator = Orchestrator(mode="default", master_agent=master_agent, child_agents=child_agents)
     
     output = []
