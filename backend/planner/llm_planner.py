@@ -1,3 +1,4 @@
+import re
 import json
 from typing import List, Dict
 from backend.planner.base import PlannerBase
@@ -12,11 +13,13 @@ class LLMPlanner(PlannerBase):
     def generate_plan(self, user_input: str, history: List[Dict] = []) -> List[Dict]:
         prompt = self.build_prompt(user_input, history)
         response = self.llm.complete(prompt).strip()
-
         if not response:
             print("❌ LLM retornou resposta vazia.")
             return []
-
+        # Remove todos os blocos de markdown
+        response = re.sub(r"```(?:json)?", "", response)
+        response = response.replace("```", "")
+        response = response.strip()
         try:
             plan = json.loads(response)
             if not isinstance(plan, list):
@@ -29,59 +32,60 @@ class LLMPlanner(PlannerBase):
 
     def build_prompt(self, user_input: str, history: List[Dict]) -> str:
         tools = get_registered_tools()
-        tool_names = [tool["function"]["name"] for tool in tools]
-
+        # Inclua o manifesto completo de cada tool
+        tool_descriptions = [
+            f'- {tool["function"]["name"]}: {tool["function"].get("description", "")}\n  Parâmetros: {json.dumps(tool["function"].get("parameters", {}), ensure_ascii=False)}'
+            for tool in tools
+        ]
         history_str = "\n".join(
             [f"[🔧{step.get('tool')}]: {step.get('result', '...')}" for step in history]
         ) or "Nenhum histórico disponível."
 
         prompt = f"""
-        Você é um planejador de ações para um agente de desenvolvimento.
+    Você é um planejador de ações para um agente de desenvolvimento.
 
-        Seu papel é analisar o pedido do usuário e, com base nas ferramentas disponíveis e no histórico recente de execuções, decidir **quais ferramentas devem ser chamadas e com quais argumentos**.
+    Seu papel é analisar o pedido do usuário e, com base nas ferramentas disponíveis e no histórico recente de execuções, decidir **quais ferramentas devem ser chamadas e com quais argumentos**.
 
-        ---
+    ---
 
-        Objetivo do usuário:
-        {user_input}
+    Objetivo do usuário:
+    {user_input}
 
-        Histórico de execuções anteriores:
-        {history_str}
+    Histórico de execuções anteriores:
+    {history_str}
 
-        Ferramentas disponíveis:
-        {tool_names}
+    Ferramentas disponíveis (com parâmetros esperados):
+    {chr(10).join(tool_descriptions)}
 
-        ---
+    ---
 
-        Sua tarefa:
+    Sua tarefa:
 
-        1. Liste as próximas ações a serem executadas, utilizando até **3 ferramentas**, no seguinte formato:
+    1. Liste as próximas ações a serem executadas, utilizando até **3 ferramentas**, no seguinte formato:
 
-        [
-          {{ "tool": "nome_da_tool", "args": {{ ... }} }},
-          ...
-        ]
+    [
+    {{ "tool": "nome_da_tool", "args": {{ ... }} }},
+    ...
+    ]
 
-        2. Se nenhuma ação for claramente necessária, **use a ferramenta agent_router como fallback**, enviando o input do usuário como argumento para ajudar a descobrir o contexto.
+    2. Use **exatamente os nomes e tipos de parâmetros** definidos acima para cada ferramenta. Não invente argumentos ou nomes de parâmetros.
 
-        3. Se o pedido for muito genérico, amplo ou mal formulado (ex: "em que você pode me ajudar?" ou "quero ver coisas da API"), inicie um processo de descoberta:
-           - Use ferramentas como agent_router, get_git_status, list_project_files, get_python_dependencies, etc., para coletar contexto sobre o projeto e a intenção do usuário.
-           - Sempre que estiver em dúvida, prefira **descobrir e adaptar**, não ignorar o input.
+    3. Se nenhuma ação for claramente necessária, use a ferramenta agent_router como fallback, enviando o input do usuário como argumento.
 
-        4. Nunca retorne um JSON vazio a menos que tenha absoluta certeza de que nenhuma ação pode ser tomada.
+    4. Nunca retorne um JSON vazio a menos que tenha absoluta certeza de que nenhuma ação pode ser tomada.
 
-        IMPORTANTE:
-        - **Retorne apenas um JSON válido**, diretamente parsável com json.loads().
-        - Não inclua comentários, explicações, markdown, prefixos como "json", nem texto fora do JSON.
-        - Use **aspas duplas** em nomes e valores de chave (ex: "tool", "args").
-        - Não deixe vírgulas no final de listas ou objetos.
+    IMPORTANTE:
+    - Retorne apenas um JSON válido, diretamente parsável com json.loads().
+    - Não inclua comentários, explicações, markdown, prefixos como "json", nem texto fora do JSON.
+    - Use aspas duplas em nomes e valores de chave.
+    - Não deixe vírgulas no final de listas ou objetos.
 
-        Exemplo válido:
-        [
-          {{ "tool": "get_git_status", "args": {{}} }},
-          {{ "tool": "commit_files", "args": {{ "message": "Ajustes finais" }} }}
-        ]
-        """
+    Exemplo válido:
+    [
+    {{ "tool": "get_git_status", "args": {{}} }},
+    {{ "tool": "commit_changes", "args": {{ "message": "Ajustes finais" }} }}
+    ]
+    """
         return prompt.strip()
 
     def parse_steps(self, response: str) -> List[Dict]:

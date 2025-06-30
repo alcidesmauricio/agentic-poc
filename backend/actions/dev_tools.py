@@ -97,11 +97,16 @@ def get_file_summary(filepath: str) -> str:
     name="create_and_run_python_file",
     description="Cria um arquivo .py e executa o conteúdo.",
     parameters={
-        "file_name": {"type": "string", "description": "Nome do arquivo a ser criado."},
-        "content": {"type": "string", "description": "Código Python a ser escrito e executado."}
+        "type": "object",
+        "properties": {
+            "file_name": {"type": "string", "description": "Nome do arquivo a ser criado."},
+            "content": {"type": "string", "description": "Código Python a ser escrito e executado."}
+        },
+        "required": ["file_name", "content"]
     }
 )
 def create_and_run_python_file(file_name: str, content: str) -> dict:
+    ...
     try:
         with open(file_name, "w") as f:
             f.write(content)

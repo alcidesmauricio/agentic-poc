@@ -1,3 +1,4 @@
+import json
 from backend.tools.registry import call_tool_by_name
 from backend.interfaces.openai_client import OpenAIClient
 from backend.planner.llm_planner import LLMPlanner
@@ -52,40 +53,56 @@ class Orchestrator:
 
     async def run_with_agents(self, user_input: str):
         self.fsm.transition_to(AgentState.EXECUTING)
-        context = ""
         master_prompt = (
             "Você é um agente coordenador. Com base na entrada do usuário "
-            "e nas descrições dos agentes disponíveis, escolha o agente mais adequado, "
-            "envie a solicitação e devolva a resposta formatada para o usuário.\n"
+            "e nas descrições dos agentes disponíveis, escolha o agente mais adequado "
+            "e responda apenas com o NOME do agente (exatamente como listado abaixo, sem explicações).\n"
         )
-
-        context += f"Usuário: {user_input}\n"
-
-        tools_description = "\n".join([
-            f"- {agent['name']}: {agent['description']}"
-            for agent in self.child_agents
-        ])
+        context = f"Usuário: {user_input}\n"
+        tools_description = "\n".join(
+            [f"- {agent['name']}: {agent['description']}" for agent in self.child_agents]
+        )
         context += f"Agentes disponíveis:\n{tools_description}\n"
+        system_prompt = master_prompt + context
+        user_prompt = (
+            "Com base na solicitação do usuário e nos agentes disponíveis, "
+            "responda apenas com o nome do agente mais adequado em JSON, sem explicações, "
+            "por exemplo: {\"agent\": \"finance_agent\"}. "
+            "Se não souber, responda {\"agent\": \"none\"}."
+        )
+        response = await self.llm.chat_async(system=system_prompt, user=user_prompt)
+        print(f"[DEBUG] Resposta bruta do LLM: {response}")  # Log para depuração
+        yield f"#bash Agente master escolheu: {response}\n"
 
-        full_prompt = f"{master_prompt}{context}\nQual agente deve ser chamado?"
+        # Tenta extrair o nome do agente do JSON
+        agent_name = None
+        try:
+            # Se vier uma lista vazia, json.loads vai retornar []
+            parsed = json.loads(response)
+            if isinstance(parsed, dict) and "agent" in parsed:
+                agent_name = parsed["agent"]
+            else:
+                agent_name = None
+        except Exception:
+            # fallback: normaliza texto simples
+            agent_name = str(response).strip().lower().replace(".", "").replace('"', '')
+            if agent_name in ("[]", "", "none", "null"):
+                agent_name = None
 
-        response = await self.llm.chat(full_prompt)
-        yield f"#bash🧖 Agente master escolheu: {response}\n"
-
-        # Localiza agente correspondente
         selected = None
-        for agent in self.child_agents:
-            if agent["name"] in response:
-                selected = agent
-                break
+        if agent_name:
+            for agent in self.child_agents:
+                if agent["name"].lower() == agent_name.lower():
+                    selected = agent
+                    break
 
         if not selected:
             yield "#bash⚠️ Nenhum agente filho reconhecido foi identificado na resposta.\n"
+            self.fsm.transition_to(AgentState.IDLE)
             return
 
         agent_prompt = selected["system_prompt"]
-        child_llm = OpenAIClient(system_prompt=agent_prompt)
-        child_response = await child_llm.chat(user_input)
-
+        child_llm = OpenAIClient()
+        child_response = await child_llm.chat_async(system=agent_prompt, user=user_input)
         yield f"#json📨 Resposta do agente {selected['name']}:\n{child_response}\n"
         self.fsm.transition_to(AgentState.IDLE)

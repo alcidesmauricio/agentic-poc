@@ -83,15 +83,70 @@
   <div id="chat"></div>
   <div id="loadingBar"></div>
   <div id="inputArea">
-    <label for="plannerToggle" style="color:#ccc; margin-right: 0.5rem;">
+    <input id="input" type="text" placeholder="Digite sua mensagem..." autocomplete="off" />
+    <label for="plannerToggle" style="display:flex; align-items:center; gap:0.3em;">
       <input type="checkbox" id="plannerToggle" /> LLM Planner?
     </label>
-    <input id="input" type="text" placeholder="Digite sua mensagem..." />
     <button id="send">Enviar</button>
+  </div>
+  <div id="agentsArea">
+    <div class="field-group">
+      <label for="masterAgentSelect">Agente master</label>
+      <select id="masterAgentSelect">
+        <option value="">Selecione o agente master</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="childAgentsSelect">Agentes auxiliares</label>
+      <select id="childAgentsSelect" multiple size="3">
+        <!-- Opções carregadas dinamicamente -->
+      </select>
+    </div>
   </div>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
+
+    const masterAgentSelect = document.getElementById("masterAgentSelect");
+    const childAgentsSelect = document.getElementById("childAgentsSelect");
+    let agentsList = [];
+
+    // Carrega agentes do endpoint
+    fetch("http://localhost:8000/agents")
+      .then(res => res.json())
+      .then(agents => {
+        agentsList = agents;
+        // Preenche master
+        agents.forEach(agent => {
+          const opt = document.createElement("option");
+          opt.value = agent.name;
+          opt.textContent = `${agent.name}`;
+          masterAgentSelect.appendChild(opt);
+        });
+        // Preenche child
+        updateChildAgentsOptions();
+      });    
+
+  // Atualiza child agents options, removendo o master selecionado
+  function updateChildAgentsOptions() {
+    const masterValue = masterAgentSelect.value;
+    childAgentsSelect.innerHTML = "";
+    agentsList.forEach(agent => {
+      if (agent.name !== masterValue) {
+        const opt = document.createElement("option");
+        opt.value = agent.name;
+        opt.textContent = `${agent.name}`;
+        childAgentsSelect.appendChild(opt);
+      }
+    });
+  }
+
+  masterAgentSelect.addEventListener("change", () => {
+    updateChildAgentsOptions();
+    // Limpa seleção dos filhos se master mudou
+    Array.from(childAgentsSelect.options).forEach(opt => { opt.selected = false; });
+  });
+
     const vscode = acquireVsCodeApi();
     const chat = document.getElementById("chat");
     const input = document.getElementById("input");
@@ -121,19 +176,22 @@
     }
 
     function sendMessage() {
+      const masterAgent = masterAgentSelect.value || null;
+      const childAgents = Array.from(childAgentsSelect.selectedOptions).map(opt => opt.value);
       const msg = input.value.trim();
+
       if (!msg) return;
 
       const plannerMode = plannerToggle.checked ? "llm" : "rule";
-
       addMessage("user", msg);
 
       vscode.postMessage({
-        type: "message",
-        text: msg,
-        planner: plannerMode
+          type: "message",
+          text: msg,
+          planner: plannerMode,
+          master_agent: masterAgent,
+          child_agents: childAgents
       });
-
       input.value = "";
       lastAgentDiv = null;
       showLoading();

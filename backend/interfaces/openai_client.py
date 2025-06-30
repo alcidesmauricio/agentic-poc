@@ -1,6 +1,7 @@
 import os
 import openai
 import json
+import asyncio
 from dotenv import load_dotenv
 from backend.interfaces.llm_interface import LLMInterface
 from backend.tools.registry import get_registered_tools, call_tool_by_name
@@ -48,32 +49,35 @@ class OpenAIClient(LLMInterface):
         except Exception as e:
             return f"[Erro Tool-Calling]: {str(e)}"
         
-def chat(self, system: str, user: str):
-        """
-        Método usado pelo LLMPlanner para gerar plano de ação (tool-calling).
-        """
-        tools = get_registered_tools()
+    def chat(self, system: str, user: str):
+            """
+            Método usado pelo LLMPlanner para gerar plano de ação (tool-calling).
+            """
+            tools = get_registered_tools()
 
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user}
-                ],
-                tools=tools,
-                tool_choice="auto"
-            )
-            message = response.choices[0].message
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user}
+                    ],
+                    tools=tools,
+                    tool_choice="auto"
+                )
+                message = response.choices[0].message
 
-            if hasattr(message, "tool_calls") and message.tool_calls:
-                plan = []
-                for call in message.tool_calls:
-                    name = call.function.name
-                    args = json.loads(call.function.arguments)
-                    plan.append({"tool": name, "args": args})
-                return plan
-            else:
-                return []
-        except Exception as e:
-            return f"[Erro no planner com tool-calling]: {e}"        
+                if hasattr(message, "tool_calls") and message.tool_calls:
+                    plan = []
+                    for call in message.tool_calls:
+                        name = call.function.name
+                        args = json.loads(call.function.arguments)
+                        plan.append({"tool": name, "args": args})
+                    return plan
+                else:
+                    return []
+            except Exception as e:
+                return f"[Erro no planner com tool-calling]: {e}"  
+
+    async def chat_async(self, system: str, user: str):
+        return await asyncio.to_thread(self.chat, system, user)                  

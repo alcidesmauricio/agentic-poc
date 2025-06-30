@@ -4,6 +4,15 @@ from backend.tools.registry import register_tool
 
 AGENTS_JSON_PATH = os.path.join(os.path.dirname(__file__), "agents_config.json")
 
+def list_all_agents():
+    if not os.path.exists(AGENTS_JSON_PATH):
+        print(f"[⚠️] Arquivo agents_config.json não encontrado em {AGENTS_JSON_PATH}")
+        return
+
+    with open(AGENTS_JSON_PATH, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def load_dynamic_agents():
     if not os.path.exists(AGENTS_JSON_PATH):
         print(f"[⚠️] Arquivo agents_config.json não encontrado em {AGENTS_JSON_PATH}")
@@ -11,7 +20,6 @@ def load_dynamic_agents():
 
     with open(AGENTS_JSON_PATH, "r", encoding="utf-8") as file:
         agents = json.load(file)
-
     for agent in agents:
         tool_name = agent["name"]
         description = agent["description"]
