@@ -13,7 +13,7 @@
     "name": "pm_agent",
     "description": "Product Manager com visão de negócio e produto.",
     "system_prompt": "Você é um PM. Avalie o impacto das decisões técnicas no produto, usuários e roadmap."
-  },
+  }, 
   {
     "name": "tech_lead_agent",
     "description": "Tech Lead com foco em arquitetura e decisões técnicas.",

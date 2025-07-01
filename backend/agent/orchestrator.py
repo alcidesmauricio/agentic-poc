@@ -1,3 +1,5 @@
+import re
+2
 import json
 from backend.tools.registry import call_tool_by_name
 from backend.interfaces.openai_client import OpenAIClient
@@ -53,69 +55,27 @@ class Orchestrator:
 
     async def run_with_agents(self, user_input: str):
         self.fsm.transition_to(AgentState.EXECUTING)
-        master_prompt = (
-            "Você é um agente coordenador. Com base na entrada do usuário "
-            "e nas descrições dos agentes disponíveis, escolha o agente mais adequado "
-            "e responda apenas com o NOME do agente (exatamente como listado abaixo, sem explicações).\n"
-        )
-        context = f"Usuário: {user_input}\n"
-        tools_description = "\n".join(
-            [f"- {agent['name']}: {agent['description']}" for agent in self.child_agents]
-        )
-        context += f"Agentes disponíveis:\n{tools_description}\n"
-        system_prompt = master_prompt + context
-        user_prompt = (
-            "Exemplos:\n"
-            "Usuário: Quero falar sobre assuntos financeiros, com quem eu falo?\n"
-            "Resposta: {\"agent\": \"finance_agent\"}\n"
-            "Usuário: Preciso de ajuda jurídica\n"
-            "Resposta: {\"agent\": \"legal_agent\"}\n"
-            "Usuário: Não sei com quem falar\n"
-            "Resposta: {\"agent\": \"none\"}\n"
-            "Usuário: Com qu falo sobre finanças?\n"
-            "Resposta: {\"agent\": \"finance_agent\"}\n"
-            "---\n"
-            f"Usuário: {user_input}\n"
-            "Com base na solicitação do usuário e nos agentes disponíveis, "
-            "responda apenas com o nome do agente mais adequado em JSON, sem explicações, "
-            "por exemplo: {\"agent\": \"finance_agent\"}. "
-            "Se não souber, responda {\"agent\": \"none\"}."
-        )
-        print(f"[DEBUG] system_prompt:\n{system_prompt}\n")
-        print(f"[DEBUG] user_prompt:\n{user_prompt}\n")
-        response = await self.llm.chat_async(system=system_prompt, user=user_prompt)
-        print(f"[DEBUG] Resposta bruta do LLM: {response}")  # Log para depuração
-        yield f"#bash Agente master escolheu: {response}\n"
+        args = {
+            "input_text": user_input,
+            "master_agent": self.master_agent["name"] if self.master_agent else None,
+            "child_agents": [agent["name"] for agent in self.child_agents]
+        }
+        router_result = await call_tool_by_name("agent_router", args)
+        print(f"router_result:{router_result}")
+        cleaned = re.sub(r"```(?:json)?", "", router_result).replace("```", "").strip()
 
-        # Tenta extrair o nome do agente do JSON
-        agent_name = None
         try:
-            # Se vier uma lista vazia, json.loads vai retornar []
-            parsed = json.loads(response)
-            if isinstance(parsed, dict) and "agent" in parsed:
-                agent_name = parsed["agent"]
-            else:
-                agent_name = None
+            agent_name = json.loads(cleaned).get("agent")
         except Exception:
-            # fallback: normaliza texto simples
-            agent_name = str(response).strip().lower().replace(".", "").replace('"', '')
-            if agent_name in ("[]", "", "none", "null"):
-                agent_name = None
+            agent_name = None
 
-        selected = None
-        if agent_name:
-            for agent in self.child_agents:
-                if agent["name"].lower() == agent_name.lower():
-                    selected = agent
-                    break
-
-        if not selected:
-            yield "#bash⚠️ Nenhum agente filho reconhecido foi identificado na resposta.\n"
+        if not agent_name or agent_name == "none":
+            yield "#bash Nenhum agente filho reconhecido foi identificado na resposta.\n"
             self.fsm.transition_to(AgentState.IDLE)
             return
 
-        agent_prompt = selected["system_prompt"]
-        child_llm = OpenAIClient()   
-        child_response = await child_llm.chat_async(system=agent_prompt, user=user_input)
-        yield f"#json📨 Resposta do agente {selected['name']}:\n{child_response}\n"
+        # Chama a tool dinâmica do agent escolhido
+        agent_tool_args = {"input": user_input}
+        agent_result = await call_tool_by_name(agent_name, agent_tool_args)
+        yield f"#json Resposta do agente {agent_name}:\n{agent_result}\n"
         self.fsm.transition_to(AgentState.IDLE)
