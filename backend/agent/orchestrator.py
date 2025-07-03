@@ -29,7 +29,7 @@ class Orchestrator:
         history = []
         self.fsm.transition_to(AgentState.PLANNING)
         plan = planner.generate_plan(user_input, history)
-        yield f"#json📝 Plano gerado:\n{plan}\n"
+        yield f"📝 Plano gerado:\n{plan}\n"
         previous_result = None
 
         for step in plan:
@@ -44,7 +44,7 @@ class Orchestrator:
             result = await call_tool_by_name(tool_name, args)
             previous_result = result.get("message", result) if isinstance(result, dict) else result
 
-            yield f"#json✅ Resultado de {tool_name}: {previous_result}\n"
+            yield f" Resultado de {tool_name}: {previous_result}\n"
 
             if self.replanning_enabled:
                 self.fsm.transition_to(AgentState.PLANNING)
@@ -52,7 +52,7 @@ class Orchestrator:
                 if not isinstance(safe_input, str):
                     safe_input = json.dumps(safe_input, ensure_ascii=False)
                 plan = planner.generate_plan(safe_input, history)
-                yield f"#json📝 Novo plano gerado após replanning: {plan}\n"
+                yield f"📝 Novo plano gerado após replanning: {plan}\n"
 
         self.fsm.transition_to(AgentState.IDLE)
 
@@ -80,5 +80,5 @@ class Orchestrator:
         # Chama a tool dinâmica do agent escolhido
         agent_tool_args = {"input": user_input}
         agent_result = await call_tool_by_name(agent_name, agent_tool_args)
-        yield f"#json Resposta do agente {agent_name}:\n{agent_result}\n"
+        yield f"Resposta do agente {agent_name}:\n{agent_result}\n"
         self.fsm.transition_to(AgentState.IDLE)
