@@ -41,14 +41,17 @@ class Orchestrator:
                         args[k] = previous_result
 
             self.fsm.transition_to(AgentState.EXECUTING)
-            result = call_tool_by_name(tool_name, args)
+            result = await call_tool_by_name(tool_name, args)
             previous_result = result.get("message", result) if isinstance(result, dict) else result
 
             yield f"#json✅ Resultado de {tool_name}: {previous_result}\n"
 
             if self.replanning_enabled:
                 self.fsm.transition_to(AgentState.PLANNING)
-                plan = planner.generate_plan(previous_result, history)
+                safe_input = previous_result
+                if not isinstance(safe_input, str):
+                    safe_input = json.dumps(safe_input, ensure_ascii=False)
+                plan = planner.generate_plan(safe_input, history)
                 yield f"#json📝 Novo plano gerado após replanning: {plan}\n"
 
         self.fsm.transition_to(AgentState.IDLE)
