@@ -88,6 +88,7 @@
       <input type="checkbox" id="plannerToggle" /> LLM Planner?
     </label>
     <button id="send">Enviar</button>
+    <button id="gitStatusBtn">Git Status</button> 
   </div>
   <div id="agentsArea">
     <div class="field-group">
@@ -153,6 +154,7 @@
     const send = document.getElementById("send");
     const plannerToggle = document.getElementById("plannerToggle");
     const loadingBar = document.getElementById("loadingBar");
+    const gitStatusBtn = document.getElementById("gitStatusBtn"); // <--- MUDANÇA
 
     let lastAgentDiv = null;
 
@@ -198,6 +200,22 @@
     }
 
     send.onclick = sendMessage;
+
+    gitStatusBtn.onclick = () => {
+        const masterAgent = masterAgentSelect.value || null;
+        const childAgents = Array.from(childAgentsSelect.selectedOptions).map(opt => opt.value);
+
+        addMessage("user", "Executando git_status...");
+        showLoading();
+
+        vscode.postMessage({
+            type: "call_mcp_tool",
+            tool: "git_status",
+            master_agent: masterAgent,
+            child_agents: childAgents
+        });
+    };
+
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
